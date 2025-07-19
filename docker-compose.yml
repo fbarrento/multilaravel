@@ -1,0 +1,124 @@
+services:
+  #PHP Service:
+  php:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: php
+      args:
+        - APP_ENV=${APP_ENV:-local}
+    environment:
+      - APP_ENV=${APP_ENV:-local}
+      - CONTAINER_ROLE=app
+    working_dir: /var/www/main
+    depends_on:
+      - database
+      - redis
+    healthcheck:
+      test: ["CMD", "sh", "-c", "test -f /var/www/main/vendor/autoload.php && test -f /var/www/admin/vendor/autoload.php"]
+      interval: 15s
+      timeout: 3s
+      retries: 20
+      start_period: 10s
+    volumes:
+      - ./admin:/var/www/admin
+      - ./main:/var/www/main
+
+  web:
+    build:
+      context: ./docker/nginx
+      dockerfile: Dockerfile
+    working_dir: /var/www/main
+    ports:
+      - "8000:80"
+    depends_on:
+      php:
+        condition: service_healthy
+    volumes:
+      - ./admin:/var/www/admin
+      - ./main:/var/www/main
+      - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf
+
+  scheduler:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: php
+      args:
+        - APP_ENV=${APP_ENV:-local}
+    environment:
+      - APP_ENV=${APP_ENV:-local}
+      - CONTAINER_ROLE=scheduler
+    working_dir: /var/www/main
+    depends_on:
+      php:
+        condition: service_healthy
+    volumes:
+      - ./admin:/var/www/admin
+      - ./main:/var/www/main
+
+
+  websockets:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: php
+      args:
+        - APP_ENV=${APP_ENV:-local}
+    environment:
+      - APP_ENV=${APP_ENV:-local}
+      - CONTAINER_ROLE=websockets
+    working_dir: /var/www/main
+    ports:
+      - "6001:6001"
+      - "6002:6002"
+    depends_on:
+      php:
+        condition: service_healthy
+    volumes:
+      - ./admin:/var/www/admin
+      - ./main:/var/www/main
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: php
+      args:
+        - APP_ENV=${APP_ENV:-local}
+    environment:
+      - APP_ENV=${APP_ENV:-local}
+      - CONTAINER_ROLE=worker
+    working_dir: /var/www/main
+    depends_on:
+      php:
+        condition: service_healthy
+    volumes:
+      - ./admin:/var/www/admin
+      - ./main:/var/www/main
+
+  # Database Server
+  database:
+    image: mysql:9.3.0
+    volumes:
+      - db-data:/var/lib/mysql
+    ports:
+      - "33006:3306"
+    environment:
+      MYSQL_DATABASE: "laravel"
+      MYSQL_USER: "laravel"
+      MYSQL_PASSWORD: ""
+      MYSQL_ALLOW_EMPTY_PASSWORD: yes
+
+
+  # Redis Server
+  redis:
+    image: redis:alpine
+    command: redis-server --appendonly yes --requirepass ""
+    ports:
+      - "6379:6379"
+
+volumes:
+  db-data: ~
+  main_vendor: ~
+  admin_vendor: ~
