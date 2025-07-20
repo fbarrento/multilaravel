@@ -83,6 +83,8 @@ jobs:
               echo "deploy-role=arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID_PROD }}:role/GitHubActionsDeployRole" >> $GITHUB_OUTPUT
               ;;
           esac
+          
+          echo "$ENVIRONMENT"
 
 
   terraform-plan:
