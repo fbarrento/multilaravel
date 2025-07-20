@@ -150,6 +150,31 @@ jobs:
             -no-color \
             -detailed-exitcode
 
+          PLAN_EXIT_CODE=$?
+          echo "exitcode=$PLAN_EXIT_CODE" >> $GITHUB_OUTPUT
+          
+          # Handle the detailed exit codes
+          case $PLAN_EXIT_CODE in
+            0)
+            echo "✅ No changes detected - infrastructure is up to date"
+            echo "has-changes=false" >> $GITHUB_OUTPUT
+            echo "::notice::No infrastructure changes detected. Skipping apply step."
+            ;;
+            1)
+            echo "❌ Terraform plan failed with errors"
+            exit 1
+            ;;
+            2)
+            echo "✅ Changes detected - plan successful, proceeding to apply"
+            echo "has-changes=true" >> $GITHUB_OUTPUT
+            echo "::notice::Infrastructure changes detected. Apply step will be executed."
+            ;;
+            *)
+            echo "❌ Unexpected exit code: $PLAN_EXIT_CODE"
+            exit 1
+            ;;
+          esac
+
       - name: Upload Plan
         uses: actions/upload-artifact@v4
         with:

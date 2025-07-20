@@ -52,13 +52,8 @@ data "aws_iam_policy_document" "github_actions_assume_role" {
 
     condition {
       test     = "StringLike"
+      values = ["repo:${var.github_repo}:*"]
       variable = "token.actions.githubusercontent.com:sub"
-      values = [
-        "repo:${var.github_repo}:ref:refs/heads/development",
-        "repo:${var.github_repo}:ref:refs/heads/main",
-        "repo:${var.github_repo}:ref:refs/heads/production",
-        "repo:${var.github_repo}:pull_request"
-      ]
     }
 
   }
@@ -79,6 +74,7 @@ data "aws_iam_policy_document" "ecr_permissions" {
   statement {
     effect = "Allow"
     actions = [
+      # Basic ECR operations
       "ecr:GetAuthorizationToken",
       "ecr:BatchCheckLayerAvailability",
       "ecr:GetDownloadUrlForLayer",
@@ -90,7 +86,30 @@ data "aws_iam_policy_document" "ecr_permissions" {
       "ecr:InitiateLayerUpload",
       "ecr:ListImages",
       "ecr:PutImage",
-      "ecr:UploadLayerPart"
+      "ecr:UploadLayerPart",
+
+      # Repository management
+      "ecr:CreateRepository",
+      "ecr:DeleteRepository",
+      "ecr:DescribeRegistry",
+      "ecr:DescribeImageScanFindings",
+      "ecr:GetRegistryPolicy",
+      "ecr:GetRepositoryPolicy",
+      "ecr:ListTagsForResource",
+      "ecr:TagResource",
+      "ecr:UntagResource",
+
+      # Lifecycle policies (the missing ones!)
+      "ecr:GetLifecyclePolicy",
+      "ecr:PutLifecyclePolicy",
+      "ecr:DeleteLifecyclePolicy",
+      "ecr:GetLifecyclePolicyPreview",
+      "ecr:StartLifecyclePolicyPreview",
+
+      # Image scanning
+      "ecr:GetImageScanFindings",
+      "ecr:StartImageScan",
+      "ecr:DescribeImageScanFindings"
     ]
     resources = ["*"]
   }
@@ -157,7 +176,7 @@ data "aws_iam_policy_document" "infrastructure_permissions" {
     resources = ["*"]
   }
 
-  # ElastiCache permissions
+  # ElasticCache permissions
   statement {
     effect = "Allow"
     actions = [
@@ -192,7 +211,12 @@ data "aws_iam_policy_document" "infrastructure_permissions" {
       "iam:ListRolePolicies",
       "iam:TagRole",
       "iam:UntagRole",
-      "iam:UpdateRole"
+      "iam:UpdateRole",
+      "iam:ListInstanceProfilesForRole",
+      "iam:CreateInstanceProfile",
+      "iam:DeleteInstanceProfile",
+      "iam:AddRoleToInstanceProfile",
+      "iam:RemoveRoleFromInstanceProfile"
     ]
     resources = [
       "arn:aws:iam::*:role/${var.project_name}-*"
