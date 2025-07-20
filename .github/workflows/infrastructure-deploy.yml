@@ -130,7 +130,7 @@ jobs:
         run: terraform fmt -check -recursive
 
       - name: Show Terraform Variables (Debug)
-        working-directory: terraform
+        working-directory: ./infrastructure/terraform
         run: |
           echo "🔍 Terraform Variable Sources:"
           echo "✅ Using tfvars file: ${{ needs.determine-environment.outputs.tfvars-file }}"
