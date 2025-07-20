@@ -142,6 +142,8 @@ jobs:
         id: plan
         working-directory: ./infrastructure/terraform
         run: |
+          set +e  # Don't exit immediately on non-zero exit codes
+          
           terraform plan \
             -var-file="environments/${{ needs.determine-environment.outputs.environment }}.tfvars" \
             -input=false \
