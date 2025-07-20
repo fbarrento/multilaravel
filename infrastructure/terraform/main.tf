@@ -286,7 +286,7 @@ resource "aws_security_group" "redis" {
 
 # ECS Cluster
 resource "aws_ecs_cluster" "main" {
-  name = "${var.project_name}-${var.environment}-cluster"
+  name = "${var.project_name}-cluster"
 
   configuration {
     execute_command_configuration {
@@ -303,7 +303,7 @@ resource "aws_ecs_cluster" "main" {
   }
 
   tags = {
-    Name = "${var.project_name}-${var.environment}-cluster"
+    Name = "${var.project_name}-cluster"
   }
 
 }
@@ -378,7 +378,7 @@ resource "aws_cloudwatch_log_group" "websockets" {
 
 # Application Load Balancer
 resource "aws_alb" "main" {
-  name               = "${var.project_name}-${var.environment}-alb"
+  name               = "${var.project_name}-alb"
   internal           = false
   load_balancer_type = "application"
   security_groups    = [aws_security_group.alb.id]
@@ -387,13 +387,13 @@ resource "aws_alb" "main" {
   enable_deletion_protection = var.enable_deletion_protection
 
   tags = {
-    Name = "${var.project_name}-${var.environment}-alb"
+    Name = "${var.project_name}-alb"
   }
 }
 
 # ALB Target Groups
 resource "aws_alb_target_group" "app" {
-  name        = "${var.project_name}-${var.environment}-app-tg"
+  name        = "${var.project_name}-app-tg"
   port        = 80
   protocol    = "HTTP"
   vpc_id      = aws_vpc.main.id
@@ -412,12 +412,12 @@ resource "aws_alb_target_group" "app" {
   }
 
   tags = {
-    Name = "${var.project_name}-${var.environment}-app-tg"
+    Name = "${var.project_name}-app-tg"
   }
 }
 
 resource "aws_alb_target_group" "websockets" {
-  name        = "${var.project_name}-${var.environment}-websockets-tg"
+  name        = "${var.project_name}-websockets-tg"
   port        = 6001
   protocol    = "HTTP"
   vpc_id      = aws_vpc.main.id
@@ -436,7 +436,7 @@ resource "aws_alb_target_group" "websockets" {
   }
 
   tags = {
-    Name = "${var.project_name}-${var.environment}-websockets-tg"
+    Name = "${var.project_name}-websockets-tg"
   }
 }
 
@@ -452,7 +452,7 @@ resource "aws_alb_listener" "app" {
   }
 
   tags = {
-    Name = "${var.project_name}-${var.environment}-app-alb-listener"
+    Name = "${var.project_name}-app-alb-listener"
   }
 }
 

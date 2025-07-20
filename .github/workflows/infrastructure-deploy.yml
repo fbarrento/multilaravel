@@ -36,7 +36,6 @@ env:
   TF_VERSION: "1.6.0"
   TF_IN_AUTOMATION: true
   TF_INPUT: false
-  TF_LOG: "TRACE"
 
 jobs:
   determine-environment:
