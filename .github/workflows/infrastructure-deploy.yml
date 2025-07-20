@@ -146,7 +146,6 @@ jobs:
           terraform plan \
            -var-file="environments/${{ needs.determine-environment.outputs.environment }}.tfvars" \
            -input=false \
-           -out=tfplan \
            -no-color
 
       - name: Upload Plan
