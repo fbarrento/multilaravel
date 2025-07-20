@@ -68,30 +68,7 @@ jobs:
           fi
           echo "Environment determined: $ENVIRONMENT"
           echo "environment=$ENVIRONMENT" >> $GITHUB_OUTPUT
-          
-          # Set AWS account ID based on environment
-          case "$ENVIRONMENT" in
-            development|staging)
-              echo "aws-account-id=${{ secrets.AWS_ACCOUNT_ID_DEV }}" >> $GITHUB_OUTPUT
-              echo "deploy-role=arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID_DEV }}:role/GitHubActionsDeployRole" >> $GITHUB_OUTPUT
-              ;;
-            production)
-              echo "aws-account-id=${{ secrets.AWS_ACCOUNT_ID_PROD }}" >> $GITHUB_OUTPUT
-              echo "deploy-role=arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID_PROD }}:role/GitHubActionsDeployRole" >> $GITHUB_OUTPUT
-              ;;
-          esac
-
-      - name: Validate Outputs
-        run: |
-          echo "Environment: ${{ steps.env.outputs.environment }}"
-          echo "AWS Account ID: ${{ steps.env.outputs.aws-account-id }}"
-          echo "Deploy Role: ${{ steps.env.outputs.deploy-role }}"
-          
-          # Fail if critical values are empty
-          if [ -z "${{ steps.env.outputs.deploy-role }}" ]; then
-            echo "ERROR: deploy-role is empty"
-            exit 1
-          fi
+      
 
 
   terraform-plan:
@@ -107,12 +84,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Debug Environment Values
-        run: |
-          echo "Environment: ${{ needs.determine-environment.outputs.environment }}"
-          echo "AWS Account ID: ${{ needs.determine-environment.outputs.aws-account-id }}"
-          echo "Deploy Role: ${{ needs.determine-environment.outputs.deploy-role }}"
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -133,3 +104,7 @@ jobs:
             -backend-config="key=${{ needs.determine-environment.outputs.environment }}/terraform.tfstate" \
             -backend-config="region=${{ vars.AWS_REGION || 'eu-central-1' }}" \
             -backend-config="dynamodb_table=${{ secrets.TERRAFORM_LOCK_TABLE }}"
+
+      - name: Terraform Validate
+        working-directory: ./infrastructure/terraform
+        run: terraform validate
