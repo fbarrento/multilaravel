@@ -143,11 +143,10 @@ jobs:
         working-directory: ./infrastructure/terraform
         run: |
           terraform plan \
-            -var-file="environments/${{ needs.determine-environment.outputs.environment }}.tfvars" \
+           -var-file="environments/${{ needs.determine-environment.outputs.environment }}.tfvars" \
            -input=false \
            -out=tfplan \
            -no-color
-          echo "plan-output=$(cat tfplan | base64)" >> $GITHUB_OUTPUT
 
       - name: Upload Plan
         uses: actions/upload-artifact@v4
