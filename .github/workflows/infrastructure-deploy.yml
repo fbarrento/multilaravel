@@ -1,0 +1,85 @@
+name: Infrastrycture Deployment
+
+on:
+  push:
+    branches:
+      - main
+      - production
+      - development
+    paths:
+      - 'infrastructure/terraform/**'
+      - '.github/workflows/infrastructure-deploy.yml'
+  pull_request:
+    paths:
+      - 'infrastructure/terraform/**'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        type: choice
+        options:
+          - development
+          - staging
+          - production
+      action:
+        description: 'Terraform action'
+        required: true
+        type: choice
+        options:
+          - plan
+          - apply
+          - destroy
+        default: plan
+
+env:
+  TF_VERSION: "1.6.0"
+  TF_IN_AUTOMATION: true
+  TF_INPUT: false
+
+jobs:
+  determine-environment:
+    runs-on: ubuntu-latest
+    outputs:
+      environment: ${{ steps.env.outputs.environment }}
+      aws-account-id: ${{ steps.env.outputs.aws-account-id }}
+      deploy-role: ${{ steps.env.outputs.deploy-role }}
+    steps:
+      - name: Determine Environment
+        id: env
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            ENVIRONMENT="${{ github.event.inputs.environment }}"
+          else
+            case "${{ github.ref_name }}" in
+              development)
+                ENVIRONMENT="development"
+                ;;
+              staging)
+                ENVIRONMENT="staging"
+                ;;
+              production)
+                ENVIRONMENT="production"
+                ;;
+              *)
+                ENVIRONMENT="development"
+                ;;
+            esac
+          fi
+          echo "environment=$ENVIRONMENT" >> $GITHUB_OUTPUT
+          
+          # Set AWS account ID based on environment
+          case "$ENVIRONMENT" in
+            development)
+              echo "aws-account-id=${{ secrets.AWS_ACCOUNT_ID_DEV }}" >> $GITHUB_OUTPUT
+              echo "deploy-role=arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID_DEV }}:role/GitHubActionsDeployRole" >> $GITHUB_OUTPUT
+              ;;
+            staging)
+              echo "aws-account-id=${{ secrets.AWS_ACCOUNT_ID_STAGING }}" >> $GITHUB_OUTPUT
+              echo "deploy-role=arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID_STAGING }}:role/GitHubActionsDeployRole" >> $GITHUB_OUTPUT
+              ;;
+            production)
+              echo "aws-account-id=${{ secrets.AWS_ACCOUNT_ID_PROD }}" >> $GITHUB_OUTPUT
+              echo "deploy-role=arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID_PROD }}:role/GitHubActionsDeployRole" >> $GITHUB_OUTPUT
+              ;;
+          esac
