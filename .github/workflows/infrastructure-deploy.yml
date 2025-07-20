@@ -149,8 +149,7 @@ jobs:
             -var-file="environments/${{ needs.determine-environment.outputs.environment }}.tfvars" \
             -input=false \
             -out=tfplan \
-            -no-color \
-            -detailed-exitcode
+            -no-color
 
           PLAN_EXIT_CODE=$?
           echo "exitcode=$PLAN_EXIT_CODE" >> $GITHUB_OUTPUT
