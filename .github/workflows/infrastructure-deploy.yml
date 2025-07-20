@@ -55,7 +55,7 @@ jobs:
               development)
                 ENVIRONMENT="development"
                 ;;
-              staging)
+              main)
                 ENVIRONMENT="staging"
                 ;;
               production)
