@@ -111,6 +111,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Debug Environment Values
+        run: |
+          echo "Environment: ${{ needs.determine-environment.outputs.environment }}"
+          echo "AWS Account ID: ${{ needs.determine-environment.outputs.aws-account-id }}"
+          echo "Deploy Role: ${{ needs.determine-environment.outputs.deploy-role }}"
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
