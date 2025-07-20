@@ -13,7 +13,7 @@ variable "environment" {
 variable "project_name" {
   description = "The name of the project"
   type        = string
-  default     = "laravel-multi-app"
+  default     = "laravel-app"
 }
 
 # VPC Configuration
@@ -284,6 +284,20 @@ variable "broadcast_connection" {
   type        = string
   default     = "redis"
 }
+
+# Feature Flags
+variable "enable_websockets" {
+  description = "Enable websockets"
+  type        = bool
+  default     = false
+}
+
+variable "enable_scheduler" {
+  description = "Enable scheduler"
+  type        = bool
+  default     = false
+}
+
 
 # Mail Configuration
 variable "mail_mailer" {

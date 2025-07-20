@@ -1,11 +1,11 @@
 # RDS Subnet Group
 resource "aws_db_subnet_group" "main" {
-    name       = "${var.project_name}-rds-subnet-group"
-    subnet_ids = aws_subnet.private[*].id
+  name       = "${var.project_name}-rds-subnet-group"
+  subnet_ids = aws_subnet.private[*].id
 
-    tags = {
-      Name = "${var.project_name}-rds-subnet-group"
-    }
+  tags = {
+    Name = "${var.project_name}-rds-subnet-group"
+  }
 }
 
 # RDS Parameter Group
@@ -19,17 +19,17 @@ resource "aws_db_parameter_group" "main" {
   }
 
   parameter {
-    name = "max_connections"
+    name  = "max_connections"
     value = "200"
   }
 
   parameter {
-    name = "slow_query_log"
+    name  = "slow_query_log"
     value = "1"
   }
 
   parameter {
-    name = "long_query_time"
+    name  = "long_query_time"
     value = "2"
   }
 
@@ -52,7 +52,7 @@ resource "aws_db_instance" "main" {
   allocated_storage     = var.db_allocated_storage
   max_allocated_storage = var.db_allocated_storage * 2
   storage_type          = "gp3"
-  storage_encrypted = true
+  storage_encrypted     = true
 
   # Database configuration
   db_name  = var.db_name
@@ -60,21 +60,21 @@ resource "aws_db_instance" "main" {
   password = var.db_password
 
   # Network Settings
-  db_subnet_group_name = aws_db_subnet_group.main.name
+  db_subnet_group_name   = aws_db_subnet_group.main.name
   vpc_security_group_ids = [aws_security_group.rds.id]
-  publicly_accessible  = false
-  port = "3306"
+  publicly_accessible    = false
+  port                   = "3306"
 
   # Backup Settings
-  backup_retention_period = var.db_backup_retention_period
-  backup_window           = var.backup_window
-  maintenance_window      = var.maintenance_window
+  backup_retention_period  = var.db_backup_retention_period
+  backup_window            = var.backup_window
+  maintenance_window       = var.maintenance_window
   delete_automated_backups = !var.enable_automated_backup
 
   # Monitoring and Performance Settings
   performance_insights_enabled = contains(["db.t3.micro", "db.t3.small"], var.db_instance_class) ? false : true
   monitoring_interval          = 60
-  monitoring_role_arn = aws_iam_role.rds_enhanced_monitoring_role.arn
+  monitoring_role_arn          = aws_iam_role.rds_enhanced_monitoring_role.arn
 
   # High Availability Settings
   multi_az = var.db_multi_az
@@ -138,12 +138,12 @@ resource "aws_elasticache_parameter_group" "main" {
   family = "redis7"
 
   parameter {
-    name = "maxmemory-policy"
+    name  = "maxmemory-policy"
     value = "allkeys-lru"
   }
 
   parameter {
-    name = "timeout"
+    name  = "timeout"
     value = "300"
   }
 
@@ -156,11 +156,11 @@ resource "aws_elasticache_parameter_group" "main" {
 # ElasticCache Redis Cluster
 resource "aws_elasticache_replication_group" "main" {
   replication_group_id = "${var.project_name}-redis"
-  description = "Redis Cluster for ${var.project_name}"
+  description          = "Redis Cluster for ${var.project_name}"
 
   # Node configuration
   node_type = var.redis_node_type
-  port = var.redis_port
+  port      = var.redis_port
 
   # Cluster configuration
   num_cache_clusters = var.redis_num_cache_nodes
@@ -169,17 +169,17 @@ resource "aws_elasticache_replication_group" "main" {
   parameter_group_name = aws_elasticache_parameter_group.main.name
 
   # Network Settings
-  subnet_group_name = aws_elasticache_subnet_group.main.name
+  subnet_group_name  = aws_elasticache_subnet_group.main.name
   security_group_ids = [aws_security_group.redis.id]
 
   # Security
   at_rest_encryption_enabled = true
   transit_encryption_enabled = true
-  auth_token = random_password.auth_token.result
+  auth_token                 = random_password.auth_token.result
 
   # Backup Settings
   snapshot_retention_limit = 5
-  snapshot_window = "07:00-09:00"
+  snapshot_window          = "07:00-09:00"
 
   # Maintenance Settings
   maintenance_window = "sun:04:00-sun:05:00"
@@ -198,7 +198,7 @@ resource "aws_elasticache_replication_group" "main" {
 
 # Redis Auth Token
 resource "random_password" "auth_token" {
-  length = 32
+  length  = 32
   special = false
 }
 
@@ -236,7 +236,7 @@ resource "aws_cloudwatch_metric_alarm" "database_cpu" {
   period              = "120"
   statistic           = "Average"
   threshold           = "80"
-  alarm_description = "This metric monitors RDS CPU utilization"
+  alarm_description   = "This metric monitors RDS CPU utilization"
 
   dimensions = {
     DBInstanceIdentifier = aws_db_instance.main.id
@@ -257,7 +257,7 @@ resource "aws_cloudwatch_metric_alarm" "database_connections" {
   period              = "120"
   statistic           = "Average"
   threshold           = "150"
-  alarm_description = "This metric monitors RDS database connections"
+  alarm_description   = "This metric monitors RDS database connections"
 
   dimensions = {
     DBInstanceIdentifier = aws_db_instance.main.id

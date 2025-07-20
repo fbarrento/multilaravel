@@ -13,7 +13,7 @@ terraform {
 }
 
 provider "aws" {
-  region =var.aws_region
+  region = var.aws_region
 
   default_tags {
     tags = {
@@ -52,10 +52,10 @@ resource "aws_internet_gateway" "main" {
 
 # Public Subnets
 resource "aws_subnet" "public" {
-  count                   = length(var.availability_zones)
-  vpc_id                  = aws_vpc.main.id
-  cidr_block              = var.public_subnets_cidrs[count.index]
-  availability_zone       = var.availability_zones[count.index]
+  count             = length(var.availability_zones)
+  vpc_id            = aws_vpc.main.id
+  cidr_block        = var.public_subnets_cidrs[count.index]
+  availability_zone = var.availability_zones[count.index]
 
   map_public_ip_on_launch = true
 
@@ -80,7 +80,7 @@ resource "aws_subnet" "private" {
 
 # Elastic IPs for NAT Gateways
 resource "aws_eip" "nat" {
-  count = length(var.availability_zones)
+  count  = length(var.availability_zones)
   domain = "vpc"
 
   depends_on = [aws_internet_gateway.main]
@@ -171,16 +171,16 @@ resource "aws_security_group" "alb" {
   }
 
   egress {
-    from_port = 0
-    to_port   = 0
-    protocol  = "tcp"
+    from_port   = 0
+    to_port     = 0
+    protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
 
   egress {
-    from_port = 0
-    to_port   = 0
-    protocol  = "-1"
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
 
@@ -198,16 +198,16 @@ resource "aws_security_group" "ecs_tasks" {
   vpc_id      = aws_vpc.main.id
 
   ingress {
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
+    from_port       = 80
+    to_port         = 80
+    protocol        = "tcp"
     security_groups = [aws_security_group.alb.id]
   }
 
   ingress {
-    from_port = 6001
-    to_port   = 6002
-    protocol  = "tcp"
+    from_port       = 6001
+    to_port         = 6002
+    protocol        = "tcp"
     security_groups = [aws_security_group.alb.id]
   }
 
@@ -233,9 +233,9 @@ resource "aws_security_group" "rds" {
   vpc_id      = aws_vpc.main.id
 
   ingress {
-    from_port   = 3306
-    to_port     = 3306
-    protocol    = "tcp"
+    from_port       = 3306
+    to_port         = 3306
+    protocol        = "tcp"
     security_groups = [aws_security_group.ecs_tasks.id]
   }
 
@@ -261,9 +261,9 @@ resource "aws_security_group" "redis" {
   vpc_id      = aws_vpc.main.id
 
   ingress {
-    from_port   = 6379
-    to_port     = 6379
-    protocol    = "tcp"
+    from_port       = 6379
+    to_port         = 6379
+    protocol        = "tcp"
     security_groups = [aws_security_group.ecs_tasks.id]
   }
 
@@ -378,11 +378,11 @@ resource "aws_cloudwatch_log_group" "websockets" {
 
 # Application Load Balancer
 resource "aws_alb" "main" {
-  name            = "${var.project_name}-${var.environment}-alb"
-  internal        = false
+  name               = "${var.project_name}-${var.environment}-alb"
+  internal           = false
   load_balancer_type = "application"
-  security_groups = [aws_security_group.alb.id]
-  subnets         = aws_subnet.public[*].id
+  security_groups    = [aws_security_group.alb.id]
+  subnets            = aws_subnet.public[*].id
 
   enable_deletion_protection = var.enable_deletion_protection
 
@@ -400,14 +400,14 @@ resource "aws_alb_target_group" "app" {
   target_type = "ip"
 
   health_check {
-    enabled = true
-    path = "/up"
-    healthy_threshold = 2
-    interval = 30
-    matcher = "200"
-    port = "traffic-port"
-    protocol = "HTTP"
-    timeout = 5
+    enabled             = true
+    path                = "/up"
+    healthy_threshold   = 2
+    interval            = 30
+    matcher             = "200"
+    port                = "traffic-port"
+    protocol            = "HTTP"
+    timeout             = 5
     unhealthy_threshold = 2
   }
 
@@ -424,14 +424,14 @@ resource "aws_alb_target_group" "websockets" {
   target_type = "ip"
 
   health_check {
-    enabled = true
-    path = "/up"
-    healthy_threshold = 2
-    interval = 30
-    matcher = "200"
-    port = "traffic-port"
-    protocol = "HTTP"
-    timeout = 5
+    enabled             = true
+    path                = "/up"
+    healthy_threshold   = 2
+    interval            = 30
+    matcher             = "200"
+    port                = "traffic-port"
+    protocol            = "HTTP"
+    timeout             = 5
     unhealthy_threshold = 2
   }
 
@@ -462,7 +462,7 @@ data "aws_iam_policy_document" "ecs_task_execution_role" {
     actions = ["sts:AssumeRole"]
 
     principals {
-      type = "Service"
+      type        = "Service"
       identifiers = ["ecs-tasks.amazonaws.com"]
     }
   }
@@ -510,7 +510,7 @@ data "aws_iam_policy_document" "ecs_task_role" {
   statement {
     actions = ["sts:AssumeRole"]
     principals {
-      type = "Service"
+      type        = "Service"
       identifiers = ["ecs-tasks.amazonaws.com"]
     }
   }
@@ -561,7 +561,7 @@ resource "aws_iam_role_policy" "ecs_task_role" {
 
 # ECR Repository for the application
 resource "aws_ecr_repository" "app" {
-  name = "${var.project_name}/app"
+  name                 = "${var.project_name}/app"
   image_tag_mutability = "MUTABLE"
 
   image_scanning_configuration {
@@ -580,12 +580,12 @@ resource "aws_ecr_lifecycle_policy" "app" {
     rules = [
       {
         rulePriority = 1
-        description = "Keep last 10 images"
+        description  = "Keep last 10 images"
         selection = {
-          tagStatus = "tagged"
+          tagStatus     = "tagged"
           tagPrefixList = ["v"]
-          countType = "imageCountMoreThan"
-          countNumber = 10
+          countType     = "imageCountMoreThan"
+          countNumber   = 10
         }
         action = {
           type = "expire"
@@ -622,9 +622,9 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "app_storage" {
 resource "aws_s3_bucket_public_access_block" "app_storage" {
   bucket = aws_s3_bucket.app_storage.id
 
-  block_public_acls = true
-  block_public_policy = true
-  ignore_public_acls = true
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
   restrict_public_buckets = true
 }
 
