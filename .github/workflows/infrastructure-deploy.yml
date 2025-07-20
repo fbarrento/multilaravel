@@ -144,9 +144,11 @@ jobs:
         working-directory: ./infrastructure/terraform
         run: |
           terraform plan \
-           -var-file="environments/${{ needs.determine-environment.outputs.environment }}.tfvars" \
-           -input=false \
-           -no-color
+            -var-file="environments/${{ needs.determine-environment.outputs.environment }}.tfvars" \
+            -input=false \
+            -out=tfplan \
+            -no-color \
+            -detailed-exitcode
 
       - name: Upload Plan
         uses: actions/upload-artifact@v4
