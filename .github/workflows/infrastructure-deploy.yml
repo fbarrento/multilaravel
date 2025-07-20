@@ -66,17 +66,14 @@ jobs:
                 ;;
             esac
           fi
+          echo "Environment determined: $ENVIRONMENT"
           echo "environment=$ENVIRONMENT" >> $GITHUB_OUTPUT
           
           # Set AWS account ID based on environment
           case "$ENVIRONMENT" in
-            development)
+            development|staging)
               echo "aws-account-id=${{ secrets.AWS_ACCOUNT_ID_DEV }}" >> $GITHUB_OUTPUT
               echo "deploy-role=arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID_DEV }}:role/GitHubActionsDeployRole" >> $GITHUB_OUTPUT
-              ;;
-            staging)
-              echo "aws-account-id=${{ secrets.AWS_ACCOUNT_ID_STAGING }}" >> $GITHUB_OUTPUT
-              echo "deploy-role=arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID_STAGING }}:role/GitHubActionsDeployRole" >> $GITHUB_OUTPUT
               ;;
             production)
               echo "aws-account-id=${{ secrets.AWS_ACCOUNT_ID_PROD }}" >> $GITHUB_OUTPUT
