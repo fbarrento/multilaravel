@@ -216,6 +216,22 @@ jobs:
           terraform_version: ${{ env.TF_VERSION }}
           terraform_wrapper: false
 
+      - name: Download Plan
+        uses: actions/download-artifact@v4
+        with:
+          name: tfplan-${{ needs.determine-environment.outputs.environment }}
+          path: ./infrastructure/terraform/
+
+      - name: Terraform Init
+        working-directory: ./infrastructure/terraform
+        run: |
+          terraform init \
+            -backend-config="bucket=${{ secrets.TERRAFORM_STATE_BUCKET }}" \
+            -backend-config="key=${{ needs.determine-environment.outputs.environment }}/terraform.tfstate" \
+            -backend-config="region=${{ vars.AWS_REGION || 'eu-central-1' }}" \
+            -backend-config="dynamodb_table=${{ secrets.TERRAFORM_LOCK_TABLE }}"
+          
+
       - name: Terraform Apply
         id: apply
         working-directory: ./infrastructure/terraform
@@ -226,5 +242,6 @@ jobs:
             -var-file="environments/${{ needs.determine-environment.outputs.environment }}.tfvars" \
             -auto-approve \
             -no-color \
+            tfplan
           
           echo "✅ Terraform Apply completed successfully!"
