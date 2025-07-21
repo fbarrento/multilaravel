@@ -149,7 +149,8 @@ jobs:
             -var-file="environments/${{ needs.determine-environment.outputs.environment }}.tfvars" \
             -input=false \
             -out=tfplan \
-            -no-color
+            -no-color \
+            -detailed-exitcodes
 
           PLAN_EXIT_CODE=$?
           echo "Plan exit code: $PLAN_EXIT_CODE"
