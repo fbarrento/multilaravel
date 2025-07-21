@@ -633,3 +633,64 @@ resource "random_string" "bucket_suffix" {
   special = false
   upper   = false
 }
+
+
+module "ecs_app" {
+  source = "./modules/ecs-app"
+
+  # Required Variables
+  project_name       = var.project_name
+  cluster_id         = aws_ecs_cluster.main.id
+  cluster_name       = aws_ecs_cluster.main.name
+  execution_role_arn = aws_iam_role.ecs_task_execution_role.arn
+  task_role_arn      = aws_iam_role.ecs_task_role.arn
+  vpc_id             = aws_vpc.main.id
+  subnet_ids         = aws_subnet.private[*].id
+  security_group_ids = [aws_security_group.ecs_tasks.id]
+  target_group_arn   = aws_alb_target_group.app.arn
+  aws_region         = var.aws_region
+
+  # Container Configuration
+  nginx_image    = "nginx:latest"
+  fargate_cpu    = var.fargate_cpu
+  fargate_memory = var.fargate_memory
+
+  # Logging Configuration
+  app_log_group_name   = aws_cloudwatch_log_group.app.name
+  nginx_log_group_name = aws_cloudwatch_log_group.nginx.name
+
+  # Service Configuration
+  app_count              = var.app_count
+  assign_pubic_ip        = false
+  enable_execute_command = var.environment != "production"
+
+  # Healthcheck Configuration
+  health_check_grace_period = 300
+
+  # Auto Scaling Configuration
+  autoscaling_enabled       = var.enable_autoscaling
+  min_capacity              = var.min_capacity
+  max_capacity              = var.max_capacity
+  target_cpu_utilization    = var.target_cpu_utilization
+  target_memory_utilization = var.target_memory_utilization
+
+  # Service Discovery Configuration
+  create_service_discovery = true
+
+  # Tags
+  tags = {
+    Name        = "${var.project_name}-app"
+    Environment = var.environment
+    Project     = var.project_name
+  }
+
+  # Dependencies
+  depends_on = [
+    aws_db_instance.main,
+    aws_elasticache_replication_group.main,
+    aws_ecs_cluster.main,
+    aws_iam_role.ecs_task_execution_role,
+    aws_iam_role.ecs_task_role
+  ]
+
+}
