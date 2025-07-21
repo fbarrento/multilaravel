@@ -1,4 +1,4 @@
-name: Infrastrycture Deployment
+name: Infrastructure Deployment
 
 on:
   push:
@@ -186,7 +186,7 @@ jobs:
     name: Terraform Apply
     needs: [determine-environment, terraform-plan]
     runs-on: ubuntu-latest
-    if: needs.terraform-plan.outputs.has-changes == 'true' && (github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'apply') || (github.event_name == 'push' && github.ref_name != 'main')
+    if: needs.terraform-plan.outputs.has-changes == 'true' && (github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'apply') || (github.event_name == 'push' && github.ref_name == 'main')
     environment:
       name: ${{ needs.determine-environment.outputs.environment }}
       url: ${{ steps.output-url.outputs.app-url }}
