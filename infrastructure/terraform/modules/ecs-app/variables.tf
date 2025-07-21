@@ -137,8 +137,11 @@ variable "health_check_start_period" {
 
 variable "nginx_health_check_command" {
   description = "Health check command for nginx container"
-  type        = string
-  default     = "CMD-SHELL curl -f http://localhost/ || exit 1"
+  type        = list(string)
+  default = [
+    "CMD-SHELL",
+    "curl -f http://localhost/ || exit 1"
+  ]
 }
 
 variable "nginx_working_directory" {
