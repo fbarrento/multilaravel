@@ -164,6 +164,10 @@ jobs:
             echo "::notice::No infrastructure changes detected. Skipping apply step."
             ;;
             1)
+              echo "❌ Terraform plan failed with errors"
+              exit 1
+              ;;
+            2)
             echo "✅ Changes detected - plan successful, proceeding to apply"
             echo "has-changes=true" >> $GITHUB_OUTPUT
             echo "::notice::Infrastructure changes detected. Apply step will be executed."
