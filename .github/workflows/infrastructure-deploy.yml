@@ -216,12 +216,6 @@ jobs:
           terraform_version: ${{ env.TF_VERSION }}
           terraform_wrapper: false
 
-      - name: Download Plan
-        uses: actions/download-artifact@v4
-        with:
-          name: tfplan-${{ needs.determine-environment.outputs.environment }}
-          path: ./infrastructure/terraform/
-
       - name: Terraform Apply
         id: apply
         working-directory: ./infrastructure/terraform
@@ -229,8 +223,8 @@ jobs:
           echo "🔄 Starting Terraform Apply..."
           
           terraform apply \
+            -var-file="environments/${{ needs.determine-environment.outputs.environment }}.tfvars" \
             -auto-approve \
             -no-color \
-            tfplan
           
           echo "✅ Terraform Apply completed successfully!"
