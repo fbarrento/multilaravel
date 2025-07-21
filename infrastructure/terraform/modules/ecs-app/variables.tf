@@ -140,7 +140,7 @@ variable "nginx_health_check_command" {
   type        = list(string)
   default = [
     "CMD-SHELL",
-    "nginx -t && pgrep nginx" # Check nginx config and process
+    "pgrep nginx"
   ]
 }
 
