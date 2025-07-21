@@ -152,6 +152,7 @@ jobs:
             -no-color
 
           PLAN_EXIT_CODE=$?
+          echo "Plan exit code: $PLAN_EXIT_CODE"
           echo "exitcode=$PLAN_EXIT_CODE" >> $GITHUB_OUTPUT
           
           # Handle the detailed exit codes
