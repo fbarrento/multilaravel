@@ -239,7 +239,6 @@ jobs:
           echo "🔄 Starting Terraform Apply..."
           
           terraform apply \
-            -var-file="environments/${{ needs.determine-environment.outputs.environment }}.tfvars" \
             -auto-approve \
             -no-color \
             tfplan
