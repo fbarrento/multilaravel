@@ -150,7 +150,7 @@ jobs:
             -input=false \
             -out=tfplan \
             -no-color \
-            -detailed-exitcodes
+            -detailed-exitcode
 
           PLAN_EXIT_CODE=$?
           echo "Plan exit code: $PLAN_EXIT_CODE"
