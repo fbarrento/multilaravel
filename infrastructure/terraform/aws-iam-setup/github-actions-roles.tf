@@ -10,12 +10,13 @@ terraform {
 variable "github_repo" {
   description = "The GitHub repository name"
   type        = string
+  default     = "fbarrento/multilaravel"
 }
 
 variable "project_name" {
   description = "The name of the project"
   type        = string
-  default     = "laravel-multi-app"
+  default     = "laravel-app"
 }
 
 # OIDC Provider for GitHub Actions
@@ -219,6 +220,7 @@ data "aws_iam_policy_document" "infrastructure_permissions" {
       "iam:RemoveRoleFromInstanceProfile"
     ]
     resources = [
+      "arn:aws:iam::*:role/laravel-app-*",
       "arn:aws:iam::*:role/${var.project_name}-*"
     ]
   }
@@ -241,11 +243,23 @@ data "aws_iam_policy_document" "infrastructure_permissions" {
       "ssm:PutParameter",
       "ssm:DeleteParameter",
       "ssm:GetParameters",
-      "ssm:DescribeParameters"
+      "ssm:AddTagsToResource",
+      "ssm:ListTagsForResource",
+      "ssm:RemoveTagsFromResource"
     ]
     resources = [
+      "arn:aws:ssm:*:*:parameter/laravel-app/*",
       "arn:aws:ssm:*:*:parameter/${var.project_name}/*"
     ]
+  }
+
+  # Global SSM actions (these don't work with specific parameter ARNs)
+  statement {
+    effect = "Allow"
+    actions = [
+      "ssm:DescribeParameters"
+    ]
+    resources = ["*"]
   }
 
   # Secrets Manager permissions
@@ -259,6 +273,7 @@ data "aws_iam_policy_document" "infrastructure_permissions" {
       "secretsmanager:DescribeSecret"
     ]
     resources = [
+      "arn:aws:secretsmanager:*:*:secret:laravel-app/*",
       "arn:aws:secretsmanager:*:*:secret:${var.project_name}/*"
     ]
   }

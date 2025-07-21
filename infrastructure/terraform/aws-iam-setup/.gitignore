@@ -1,0 +1,27 @@
+# .gitignore - Add these lines to your .gitignore
+
+# Terraform
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+crash.log
+crash.*.log
+
+# Sensitive files - NEVER commit these!
+secrets.dev.tfvars
+*.auto.tfvars
+secrets.dev.tfvars
+secrets.dev.tfvars
+*.pem
+*.key
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
