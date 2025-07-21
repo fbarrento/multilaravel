@@ -168,6 +168,37 @@ data "aws_iam_policy_document" "infrastructure_permissions" {
     resources = ["*"]
   }
 
+  # Service Discovery permissions (ADD THIS BLOCK)
+  statement {
+    effect = "Allow"
+    actions = [
+      "servicediscovery:CreatePrivateDnsNamespace",
+      "servicediscovery:DeleteNamespace",
+      "servicediscovery:GetNamespace",
+      "servicediscovery:ListNamespaces",
+      "servicediscovery:UpdateNamespace",
+      "servicediscovery:CreateService",
+      "servicediscovery:DeleteService",
+      "servicediscovery:GetService",
+      "servicediscovery:ListServices",
+      "servicediscovery:UpdateService",
+      "servicediscovery:CreateHttpNamespace",
+      "servicediscovery:GetOperation",
+      "servicediscovery:ListOperations",
+      "servicediscovery:RegisterInstance",
+      "servicediscovery:DeregisterInstance",
+      "servicediscovery:DiscoverInstances",
+      "servicediscovery:GetInstance",
+      "servicediscovery:GetInstancesHealthStatus",
+      "servicediscovery:ListInstances",
+      "servicediscovery:UpdateInstanceCustomHealthStatus",
+      "servicediscovery:TagResource",
+      "servicediscovery:UntagResource",
+      "servicediscovery:ListTagsForResource"
+    ]
+    resources = ["*"]
+  }
+
   # RDS permissions
   statement {
     effect = "Allow"
