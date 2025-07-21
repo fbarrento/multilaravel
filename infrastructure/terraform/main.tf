@@ -401,7 +401,7 @@ resource "aws_alb_target_group" "app" {
 
   health_check {
     enabled             = true
-    path                = "/up"
+    path                = "/"
     healthy_threshold   = 2
     interval            = 30
     matcher             = "200"
