@@ -140,14 +140,14 @@ variable "nginx_health_check_command" {
   type        = list(string)
   default = [
     "CMD-SHELL",
-    "nginx -t && pgrep nginx"  # Check nginx config and process
+    "nginx -t && pgrep nginx" # Check nginx config and process
   ]
 }
 
 variable "nginx_working_directory" {
   description = "Working directory for nginx container"
   type        = string
-  default     = "/usr/share/nginx/html"  # Standard nginx static content dir
+  default     = "/usr/share/nginx/html" # Standard nginx static content dir
 }
 
 # Auto Scaling Configuration
