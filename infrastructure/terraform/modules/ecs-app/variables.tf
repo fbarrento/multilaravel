@@ -140,7 +140,7 @@ variable "nginx_health_check_command" {
   type        = list(string)
   default = [
     "CMD-SHELL",
-    "pgrep nginx"
+    "curl -f http://localhost/ || exit 1"
   ]
 }
 
