@@ -687,19 +687,23 @@ module "ecs_app" {
   aws_region         = var.aws_region
 
   # Container Configuration
-  nginx_image    = "nginx:latest"
+  nginx_image    = var.nginx_image
+  app_image      = var.app_image
   fargate_cpu    = var.fargate_cpu
   fargate_memory = var.fargate_memory
 
   # Laravel Configuration
-  app_env                   = var.app_env
-  app_debug                 = var.app_debug
-  app_key                   = var.app_key
-  log_level                 = var.log_level
-  db_host                   = aws_db_instance.main.address
-  db_name                   = var.db_name
-  db_username               = var.db_username
-  db_password_parameter_arn = aws_ssm_parameter.db_credentials.arn
+  app_env                      = var.app_env
+  app_debug                    = var.app_debug
+  app_key                      = var.app_key
+  log_level                    = var.log_level
+  db_host                      = aws_db_instance.main.address
+  db_name                      = var.db_name
+  db_username                  = var.db_username
+  db_password_parameter_arn    = aws_ssm_parameter.db_credentials.arn
+  redis_host                   = aws_elasticache_replication_group.main.primary_endpoint_address
+  redis_port                   = aws_elasticache_replication_group.main.port
+  redis_password_parameter_arn = aws_ssm_parameter.redis_auth_token.arn
 
   # Logging Configuration
   app_log_group_name   = aws_cloudwatch_log_group.app.name

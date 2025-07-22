@@ -40,6 +40,61 @@ resource "aws_ecs_task_definition" "app" {
 
   container_definitions = jsonencode([
     {
+      name      = "php",
+      image     = var.app_image
+      essential = true
+
+      environment = concat([
+        {
+          name  = "APP_ENV"
+          value = var.app_env
+        },
+        {
+          name  = "APP_DEBUG"
+          value = tostring(var.app_debug)
+        },
+        {
+          name  = "APP_KEY"
+          value = var.app_key
+        },
+        {
+          name  = "DB_HOST"
+          value = var.db_host
+        },
+        {
+          name  = "DB_PORT"
+          value = "3306"
+        },
+        {
+          name  = "DB_CONNECTION"
+          value = "mysql"
+        },
+        {
+          name  = "DB_DATABASE"
+          value = var.db_name
+        },
+        {
+          name  = "DB_USERNAME"
+          value = var.db_username
+        },
+        {
+          name  = "REDIS_HOST"
+          value = var.redis_host
+        }
+      ], var.additional_environment_variables)
+
+      secrets = [
+        {
+          name      = "DB_PASSWORD"
+          valueFrom = var.db_password_parameter_arn
+        },
+        {
+          name      = "REDIS_PASSWORD"
+          valueFrom = var.redis_password_parameter_arn
+        }
+      ]
+    },
+    {
       name      = "nginx"
       image     = var.nginx_image
       essential = true
@@ -70,28 +125,6 @@ resource "aws_ecs_task_definition" "app" {
           "awslogs-stream-prefix" = "ecs"
         }
       }
-
-      environment = concat([
-        {
-          name  = "APP_ENV"
-          value = var.app_env
-        },
-        {
-          name  = "APP_DEBUG"
-          value = tostring(var.app_debug)
-        },
-        {
-          name  = "DB_HOST"
-          value = var.db_host
-        }
-      ], var.additional_environment_variables)
-
-      secrets = [
-        {
-          name      = "DB_PASSWORD"
-          valueFrom = var.db_password_parameter_arn
-        }
-      ]
 
       # Working directory
       workingDirectory = var.nginx_working_directory

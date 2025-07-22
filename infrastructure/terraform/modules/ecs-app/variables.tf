@@ -56,6 +56,11 @@ variable "nginx_image" {
   default     = "nginx:latest"
 }
 
+variable "app_image" {
+  description = "Docker image for the Laravel application"
+  type        = string
+}
+
 variable "fargate_cpu" {
   description = "Fargate instance CPU units (1024 = 1 vCPU)"
   type        = number
@@ -117,6 +122,30 @@ variable "db_password" {
 
 variable "db_password_parameter_arn" {
   description = "ARN of the parameter store for the database password"
+  type        = string
+}
+
+# Redis Configuration
+variable "redis_host" {
+  description = "Redis host"
+  type        = string
+}
+
+variable "redis_port" {
+  description = "Redis port"
+  type        = number
+  default     = 6379
+}
+
+variable "redis_password" {
+  description = "Redis password"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
+variable "redis_password_parameter_arn" {
+  description = "ARN of the parameter store for the Redis password"
   type        = string
 }
 
