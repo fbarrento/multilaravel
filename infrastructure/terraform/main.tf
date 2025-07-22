@@ -559,6 +559,42 @@ resource "aws_iam_role_policy" "ecs_task_role" {
 
 }
 
+resource "aws_iam_role_policy" "ecs_task_execution_parameter_store" {
+  name = "${var.project_name}-ecs-task-execution-parameter-store"
+  role = aws_iam_role.ecs_task_execution_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "ssm:GetParameters",
+          "ssm:GetParameter",
+          "ssm:GetParametersByPath"
+        ]
+        Resource = [
+          "arn:aws:ssm:${var.aws_region}:*:parameter/${var.project_name}/${var.environment}/*"
+        ]
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "kms:Decrypt"
+        ]
+        Resource = [
+          "arn:aws:kms:${var.aws_region}:*:key/*"
+        ]
+        Condition = {
+          StringEquals = {
+            "kms:ViaService" = "ssm.${var.aws_region}.amazonaws.com"
+          }
+        }
+      }
+    ]
+  })
+}
+
 # ECR Repository for the application
 resource "aws_ecr_repository" "app" {
   name                 = "${var.project_name}/app"
