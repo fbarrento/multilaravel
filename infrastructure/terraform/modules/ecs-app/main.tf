@@ -79,6 +79,10 @@ resource "aws_ecs_task_definition" "app" {
         {
           name  = "APP_DEBUG"
           value = tostring(var.app_debug)
+        },
+        {
+          name  = "DB_HOST"
+          value = var.db_host
         }
       ], var.additional_environment_variables)
 
