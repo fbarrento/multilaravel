@@ -74,6 +74,10 @@ jobs:
     name: Build and Push Docker Image
     needs: determine-environment
     environment: ${{ needs.determine-environment.outputs.environment }}
+    permissions:
+      contents: read
+      id-token: write
+      pull-requests: write
     outputs:
       image-uri: ${{ steps.push.outputs.image-uri }}
 
