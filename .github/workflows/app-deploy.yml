@@ -38,15 +38,27 @@ jobs:
       - name: Determine environment
         id: env
         run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "environment=${{ github.event.inputs.environment }}" >> $GITHUB_OUTPUT
-          elif [ "${{ github.ref }}" = "refs/heads/main" ]; then
-            echo "environment=production" >> $GITHUB_OUTPUT
-          elif [ "${{ github.ref }}" = "refs/heads/staging" ]; then
-            echo "environment=staging" >> $GITHUB_OUTPUT
+          |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            ENVIRONMENT="${{ github.event.inputs.environment }}"
           else
-            echo "environment=development" >> $GITHUB_OUTPUT
+            case "${{ github.ref_name }}" in
+              development)
+                ENVIRONMENT="development"
+                ;;
+              main)
+                ENVIRONMENT="staging"
+                ;;
+              production)
+                ENVIRONMENT="production"
+                ;;
+              *)
+                ENVIRONMENT="development"
+                ;;
+            esac
           fi
+          echo "Environment determined: $ENVIRONMENT"
+          echo "environment=$ENVIRONMENT" >> $GITHUB_OUTPUT
 
       - name: Generate image tag
         id: tag
