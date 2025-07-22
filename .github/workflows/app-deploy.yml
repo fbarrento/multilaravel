@@ -1,0 +1,111 @@
+name: Deploy App to ECS
+
+on:
+  push:
+    branches:
+      - main
+      - production
+      - development
+    paths:
+      - 'main/**'
+      - 'admin/**'
+      - '.github/workflows/app-deploy.yml'
+      - 'docker/**'
+      - 'Dockerfile'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        type: choice
+        default: 'staging'
+        options:
+          - development
+          - staging
+          - production
+
+env:
+  AWS_REGION: ${{ vars.AWS_REGION || 'eu-central-1' }}
+
+jobs:
+  determine-environment:
+    name: Determine Environment
+    runs-on: ubuntu-latest
+    outputs:
+      environment: ${{ steps.env.outputs.environment }}
+      image-tag: ${{ steps.tag.outputs.tag }}
+    steps:
+      - name: Determine environment
+        id: env
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "environment=${{ github.event.inputs.environment }}" >> $GITHUB_OUTPUT
+          elif [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            echo "environment=production" >> $GITHUB_OUTPUT
+          elif [ "${{ github.ref }}" = "refs/heads/staging" ]; then
+            echo "environment=staging" >> $GITHUB_OUTPUT
+          else
+            echo "environment=development" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Generate image tag
+        id: tag
+        run: |
+          ENVIRONMENT=$(echo "${{ steps.env.outputs.environment }}")
+          TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+          SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
+          TAG="${ENVIRONMENT}-${TIMESTAMP}-${SHORT_SHA}"
+          echo "tag=${TAG}" >> $GITHUB_OUTPUT
+          echo "Generated tag: ${TAG}"
+
+  build-and-push:
+    runs-on: ubuntu-latest
+    name: Build and Push Docker Image
+    needs: determine-environment
+    environment: ${{ needs.determine-environment.outputs.environment }}
+    outputs:
+      image-uri: ${{ steps.push.outputs.image-uri }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE }}
+          aws-region: ${{ vars.AWS_REGION || 'eu-central-1' }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and Push Docker Image
+        id: build
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: laravel-app/app
+          IMAGE_TAG: ${{ needs.determine-environment.outputs.image-tag }}
+          ENVIRONMENT: ${{ needs.determine-environment.outputs.environment }}
+        run: |
+          echo "🏗️ Building Docker image..."
+          
+          # Build the image
+          docker build \
+            --target php \
+            --build-arg APP_ENV=$ENVIRONMENT \
+            --tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG \
+            --tag $ECR_REGISTRY/$ECR_REPOSITORY:$ENVIRONMENT-latest \
+            .
+          
+          echo "📤 Pushing to ECR..."
+          
+          # Push both tags
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$ENVIRONMENT-latest
+          
+          # Output the image URI
+          IMAGE_URI="$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+          echo "image-uri=$IMAGE_URI" >> $GITHUB_OUTPUT
+          echo "✅ Image pushed: $IMAGE_URI"
+          
