@@ -38,7 +38,6 @@ jobs:
       - name: Determine environment
         id: env
         run: |
-          |
           if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
             ENVIRONMENT="${{ github.event.inputs.environment }}"
           else
