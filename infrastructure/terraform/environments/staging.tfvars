@@ -74,5 +74,5 @@ domain_name     = ""
 certificate_arn = ""
 
 # Container Images (will be updated by CI/CD)
-app_image   = "424309783962.dkr.ecr.eu-central-1.amazonaws.com/laravel-app/app:latest"
+app_image   = "424309783962.dkr.ecr.eu-central-1.amazonaws.com/laravel-app/app:staging-latest"
 nginx_image = "nginx:latest"
