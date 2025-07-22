@@ -78,7 +78,7 @@ resource "aws_ecs_task_definition" "app" {
         },
         {
           name  = "APP_DEBUG"
-          value = var.app_debug
+          value = tostring(var.app_debug)
         }
       ], var.additional_environment_variables)
 
