@@ -93,6 +93,15 @@ resource "aws_ecs_task_definition" "app" {
           valueFrom = var.redis_password_parameter_arn
         }
       ]
+
+      logConfiguration = {
+        logDriver = "awslogs"
+        options = {
+          "awslogs-group"         = var.app_log_group_name
+          "awslogs-region"        = var.aws_region
+          "awslogs-stream-prefix" = "ecs"
+        }
+      }
     },
     {
       name      = "nginx"
