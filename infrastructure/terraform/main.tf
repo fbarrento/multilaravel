@@ -655,6 +655,16 @@ module "ecs_app" {
   fargate_cpu    = var.fargate_cpu
   fargate_memory = var.fargate_memory
 
+  # Laravel Configuration
+  app_env                   = var.app_env
+  app_debug                 = var.app_debug
+  app_key                   = var.app_key
+  log_level                 = var.log_level
+  db_host                   = aws_db_instance.main.address
+  db_name                   = var.db_name
+  db_username               = var.db_username
+  db_password_parameter_arn = aws_ssm_parameter.db_credentials.arn
+
   # Logging Configuration
   app_log_group_name   = aws_cloudwatch_log_group.app.name
   nginx_log_group_name = aws_cloudwatch_log_group.nginx.name

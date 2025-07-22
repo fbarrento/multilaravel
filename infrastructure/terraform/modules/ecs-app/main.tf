@@ -71,6 +71,24 @@ resource "aws_ecs_task_definition" "app" {
         }
       }
 
+      environment = concat([
+        {
+          name  = "APP_ENV"
+          value = var.app_env
+        },
+        {
+          name  = "APP_DEBUG"
+          value = var.app_debug
+        }
+      ], var.additional_environment_variables)
+
+      secrets = [
+        {
+          name      = "DB_PASSWORD"
+          valueFrom = var.db_password_parameter_arn
+        }
+      ]
+
       # Working directory
       workingDirectory = var.nginx_working_directory
 

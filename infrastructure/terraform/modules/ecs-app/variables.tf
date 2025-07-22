@@ -68,6 +68,58 @@ variable "fargate_memory" {
   default     = 2048
 }
 
+# Application Configuration
+variable "app_env" {
+  description = "Laravel application environment name"
+  type        = string
+}
+
+variable "app_debug" {
+  description = "Laravel application debug mode"
+  type        = bool
+}
+
+variable "app_key" {
+  description = "Laravel application key"
+  type        = string
+  sensitive   = true
+}
+
+variable "log_level" {
+  description = "Laravel application log level"
+  type        = string
+  default     = "error"
+}
+
+# Database Configuration
+variable "db_host" {
+  description = "Database host (used when create_rds_data_source if false)"
+  type        = string
+  default     = ""
+}
+
+variable "db_name" {
+  description = "Database name (used when create_rds_data_source if false)"
+  type        = string
+}
+
+variable "db_username" {
+  description = "Database username"
+  type        = string
+}
+
+variable "db_password" {
+  description = "Database password"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
+variable "db_password_parameter_arn" {
+  description = "ARN of the parameter store for the database password"
+  type        = string
+}
+
 # Logging Configuration
 variable "app_log_group_name" {
   description = "CloudWatch log group name for app container"
