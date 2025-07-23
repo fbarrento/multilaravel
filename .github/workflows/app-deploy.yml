@@ -33,8 +33,9 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       environment: ${{ steps.env.outputs.environment }}
-      php-image-tag: ${{ steps.tag.outputs.tag }}
-      nginx-image-tag: ${{ steps.tag.outputs.tag }}
+      php-image-tag: ${{ steps.tag.outputs.php-tag }}
+      nginx-image-tag: ${{ steps.tag.outputs.nginx-tag }}
+      base-tag: ${{ steps.tag.outputs.base-tag }}
     steps:
       - name: Determine environment
         id: env
@@ -66,9 +67,18 @@ jobs:
           ENVIRONMENT=$(echo "${{ steps.env.outputs.environment }}")
           TIMESTAMP=$(date +%Y%m%d-%H%M%S)
           SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
-          TAG="${ENVIRONMENT}-${TIMESTAMP}-${SHORT_SHA}"
-          echo "tag=${TAG}" >> $GITHUB_OUTPUT
-          echo "Generated tag: ${TAG}"
+          BASE_TAG="${ENVIRONMENT}-${TIMESTAMP}-${SHORT_SHA}"
+          
+          PHP_TAG="${BASE_TAG}"
+          NGINX_TAG="${BASE_TAG}"
+          
+          echo "base-tag=${TAG}" >> $GITHUB_OUTPUT
+          echo "php-tag=${PHP_TAG}" >> $GITHUB_OUTPUT
+          echo "nginx-tag=${NGINX_TAG}" >> $GITHUB_OUTPUT
+          
+          echo "Generated Base: ${BAE_TAG}"
+          echo "Generated PHP: ${PHP_TAG}"
+          echo "Generated NGINX: ${NGINX_TAG}"
 
   build-and-push:
     runs-on: ubuntu-latest
@@ -80,7 +90,8 @@ jobs:
       id-token: write
       pull-requests: write
     outputs:
-      image-uri: ${{ steps.push.outputs.image-uri }}
+      php-image-uri: ${{ steps.push.outputs.image-uri }}
+      nginx-image-uri: ${{ steps.push.outputs.image-uri }}
 
     steps:
       - name: Checkout
@@ -96,12 +107,12 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Build and Push Docker Image
-        id: build
+      - name: Build and Push PHP Docker Image
+        id: build-php
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: laravel-app/app
-          IMAGE_TAG: ${{ needs.determine-environment.outputs.image-tag }}
+          PHP_REPOSITORY: laravel-app/app
+          PHP_IMAGE_TAG: ${{ needs.determine-environment.outputs.php-image-tag }}
           ENVIRONMENT: ${{ needs.determine-environment.outputs.environment }}
         run: |
           echo "🏗️ Building Docker image..."
@@ -110,18 +121,47 @@ jobs:
           docker build \
             --target php \
             --build-arg APP_ENV=$ENVIRONMENT \
-            --tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG \
-            --tag $ECR_REGISTRY/$ECR_REPOSITORY:$ENVIRONMENT-latest \
+            --tag $ECR_REGISTRY/$PHP_REPOSITORY:$PHP_IMAGE_TAG \
+            --tag $ECR_REGISTRY/$PHP_REPOSITORY:$ENVIRONMENT-latest \
             .
           
           echo "📤 Pushing to ECR..."
           
           # Push both tags
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$ENVIRONMENT-latest
+          docker push $ECR_REGISTRY/$PHP_REPOSITORY:$PHP_IMAGE_TAG
+          docker push $ECR_REGISTRY/$PHP_REPOSITORY:$ENVIRONMENT-latest
           
           # Output the image URI
-          IMAGE_URI="$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
-          echo "image-uri=$IMAGE_URI" >> $GITHUB_OUTPUT
+          IMAGE_URI="$ECR_REGISTRY/$PHP_REPOSITORY:$PHP_IMAGE_TAG"
+          echo "image-uri=$PHP_IMAGE_TAG" >> $GITHUB_OUTPUT
           echo "✅ Image pushed: $IMAGE_URI"
           
+      - name: Build and Push Nginx Docker Image
+        id: build
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          NGINX_REPOSITORY: laravel-app/nginx
+          NGINX_IMAGE_TAG: ${{ needs.determine-environment.outputs.nginx-image-tag }}
+          ENVIRONMENT: ${{ needs.determine-environment.outputs.environment }}
+        working-directory: ./docker/nginx
+        run: |
+          echo "🏗️ Building Docker image..."
+
+          # Build the image
+          docker build \
+            --target php \
+            --build-arg APP_ENV=$ENVIRONMENT \
+            --tag $ECR_REGISTRY/$NGINX_REPOSITORY:$NGINX_IMAGE_TAG \
+            --tag $ECR_REGISTRY/$NGINX_REPOSITORY:$ENVIRONMENT-latest \
+            .
+
+          echo "📤 Pushing to ECR..."
+
+          # Push both tags
+          docker push $ECR_REGISTRY/$NGINX_REPOSITORY:$NGINX_IMAGE_TAG
+          docker push $ECR_REGISTRY/$NGINX_REPOSITORY:$ENVIRONMENT-latest
+
+          # Output the image URI
+          IMAGE_URI="$ECR_REGISTRY/$NGINX_REPOSITORY:$NGINX_IMAGE_TAG"
+          echo "image-uri=$NGINX_IMAGE_TAG" >> $GITHUB_OUTPUT
+          echo "✅ Image pushed: $IMAGE_URI"

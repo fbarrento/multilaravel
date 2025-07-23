@@ -4,12 +4,12 @@ RUN apk add --no-cache curl
 
 RUN rm /etc/nginx/conf.d/default.conf
 
-RUN rm /etc/nginx/conf.d/default.conf
-
 COPY nginx.old.conf /etc/nginx/nginx.conf
 COPY laravel.conf /etc/nginx/conf.d/laravel.conf
 
-RUN usermod -u 1000 www-data
+RUN addgroup -g 1000 -S www-data || true && \
+    adduser -u 1000 -D -S -G www-data www-data || \
+    (deluser www-data && adduser -u 1000 -D -S -G www-data www-data)
 
 RUN mkdir -p /var/cache/nginx
 

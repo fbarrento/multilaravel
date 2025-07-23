@@ -113,7 +113,7 @@ services:
 
   # Redis Server
   redis:
-    image: redis:alpine
+    image: redis:latest
     command: redis-server --appendonly yes --requirepass ""
     ports:
       - "6379:6379"
