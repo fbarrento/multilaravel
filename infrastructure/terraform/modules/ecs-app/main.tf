@@ -88,6 +88,14 @@ resource "aws_ecs_task_definition" "app" {
         {
           name  = "LOG_CHANNEL"
           value = "stderr"
+        },
+        {
+          name  = "LOG_LEVEL"
+          value = "info"
+        },
+        {
+          name  = "LOG_STDERR_FORMATTER"
+          value = "json"
         }
       ], var.additional_environment_variables)
 
