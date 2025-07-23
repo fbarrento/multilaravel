@@ -240,6 +240,12 @@ variable "php_health_check_command" {
   ]
 }
 
+variable "php_working_directory" {
+  description = "Working directory for app container"
+  type        = string
+  default     = "/var/www/main"
+}
+
 
 
 # Auto Scaling Configuration

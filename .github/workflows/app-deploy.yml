@@ -33,7 +33,8 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       environment: ${{ steps.env.outputs.environment }}
-      image-tag: ${{ steps.tag.outputs.tag }}
+      php-image-tag: ${{ steps.tag.outputs.tag }}
+      nginx-image-tag: ${{ steps.tag.outputs.tag }}
     steps:
       - name: Determine environment
         id: env

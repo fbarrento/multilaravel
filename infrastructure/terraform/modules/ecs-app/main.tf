@@ -46,6 +46,10 @@ resource "aws_ecs_task_definition" "app" {
 
       environment = concat([
         {
+          name  = "CONTAINER_ROLE"
+          value = "app"
+        },
+        {
           name  = "APP_ENV"
           value = var.app_env
         },
@@ -110,6 +114,8 @@ resource "aws_ecs_task_definition" "app" {
           "awslogs-stream-prefix" = "ecs"
         }
       }
+
+      workingDirectory = var.php_working_directory
     },
     {
       name      = "nginx"
