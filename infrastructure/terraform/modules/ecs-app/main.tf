@@ -123,13 +123,6 @@ resource "aws_ecs_task_definition" "app" {
       image     = var.nginx_image
       essential = true
 
-      environment = [
-        {
-          name  = "PHP_FPM_HOST"
-          value = "localhost"
-        }
-      ]
-
       # Port mappings
       portMappings = [
         {
