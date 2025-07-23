@@ -231,6 +231,17 @@ variable "nginx_working_directory" {
   default     = "/usr/share/nginx/html" # Standard nginx static content dir
 }
 
+variable "php_health_check_command" {
+  description = "Health check command for app container"
+  type        = list(string)
+  default = [
+    "CMD-SHELL",
+    "php -v && test -f /var/www/main/vendor/autoload.php"
+  ]
+}
+
+
+
 # Auto Scaling Configuration
 variable "autoscaling_enabled" {
   description = "Enable auto scaling for ECS Service"

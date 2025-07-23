@@ -94,6 +94,14 @@ resource "aws_ecs_task_definition" "app" {
         }
       ]
 
+      healthCheck = length(var.php_health_check_command) > 0 ? {
+        command     = var.php_health_check_command
+        interval    = var.health_check_interval
+        timeout     = var.health_check_timeout
+        retries     = var.health_check_retries
+        startPeriod = 30
+      } : null
+
       logConfiguration = {
         logDriver = "awslogs"
         options = {
@@ -113,6 +121,13 @@ resource "aws_ecs_task_definition" "app" {
         {
           containerPort = 80
           protocol      = "tcp"
+        }
+      ]
+
+      dependsOn = [
+        {
+          containerName = "php"
+          condition     = "HEALTHY"
         }
       ]
 
