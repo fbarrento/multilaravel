@@ -7,13 +7,6 @@ if [ ! -f vendor/autoload.php ]; then
   composer install --no-progress --no-interaction
 fi
 
-if [ ! -f .env ]; then
-  echo "Creating env file for new $APP_ENV"
-  cp .env.example .env
-else
-  echo "env file already exists"
-fi
-
 if [ -d storage ]; then
   echo "Setting storage permissions"
   chmod -R 755 storage
