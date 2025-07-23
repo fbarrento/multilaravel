@@ -1,5 +1,5 @@
 resource "aws_ssm_parameter" "app_key" {
-  name  = "/${var.project_name}/${var.app_env}/db/password"
+  name  = "/${var.project_name}/${var.app_env}/app/key"
   type  = "SecureString"
   value = var.app_key
 
