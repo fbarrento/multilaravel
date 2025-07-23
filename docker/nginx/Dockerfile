@@ -5,7 +5,7 @@ RUN apk add --no-cache curl
 RUN rm /etc/nginx/conf.d/default.conf
 
 COPY nginx.conf /etc/nginx/nginx.conf
-COPY laravel.conf /etc/nginx/conf.d/laravel.conf
+COPY laravel.conf /etc/nginx/conf.d/default.conf
 
 RUN addgroup -g 1000 -S www-data || true && \
     adduser -u 1000 -D -S -G www-data www-data || \
