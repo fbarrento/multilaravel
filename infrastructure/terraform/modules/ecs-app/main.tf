@@ -84,6 +84,10 @@ resource "aws_ecs_task_definition" "app" {
         {
           name  = "REDIS_HOST"
           value = var.redis_host
+        },
+        {
+          name  = "LOG_CHANNEL"
+          value = "stderr"
         }
       ], var.additional_environment_variables)
 
