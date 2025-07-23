@@ -20,6 +20,7 @@ RUN chown -R www-data:www-data /var/cache/nginx
 
 RUN chown -R www-data:www-data /usr/share/nginx/html
 
+
 HEALTHCHECK --interval=10s --timeout=3s --retries=3 CMD curl -f http://localhost/health || exit 1
 
 EXPOSE 80
