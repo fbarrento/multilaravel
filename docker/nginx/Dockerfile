@@ -24,11 +24,3 @@ HEALTHCHECK --interval=10s --timeout=3s --retries=3 CMD curl -f http://localhost
 
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
-
-
-
-
-COPY nginx.old.conf /etc/nginx/nginx.conf
-
-
-CMD ["nginx", "-g", "daemon off;"]
