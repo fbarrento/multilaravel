@@ -98,6 +98,7 @@ resource "aws_ecs_task_definition" "app" {
         }
       ]
 
+
       healthCheck = length(var.php_health_check_command) > 0 ? {
         command     = var.php_health_check_command
         interval    = var.health_check_interval
@@ -121,6 +122,13 @@ resource "aws_ecs_task_definition" "app" {
       name      = "nginx"
       image     = var.nginx_image
       essential = true
+
+      environment = [
+        {
+          name  = "PHP_FPM_HOST"
+          value = "localhost"
+        }
+      ]
 
       # Port mappings
       portMappings = [
