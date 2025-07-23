@@ -4,7 +4,7 @@ RUN apk add --no-cache curl
 
 RUN rm /etc/nginx/conf.d/default.conf
 
-COPY nginx.old.conf /etc/nginx/nginx.conf
+COPY nginx.conf /etc/nginx/nginx.conf
 COPY laravel.conf /etc/nginx/conf.d/laravel.conf
 
 RUN addgroup -g 1000 -S www-data || true && \
