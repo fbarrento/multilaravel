@@ -104,6 +104,18 @@ resource "aws_ecs_task_definition" "app" {
         {
           name  = "LOG_STDERR_FORMATTER"
           value = "json"
+        },
+        {
+          name  = "SESSION_DRIVER"
+          value = var.session_driver
+        },
+        {
+          name  = "CACHE_STORE"
+          value = var.cache_driver
+        },
+        {
+          name  = "QUEUE_CONNECTION"
+          value = var.queue_connection
         }
       ], var.additional_environment_variables)
 

@@ -96,6 +96,24 @@ variable "log_level" {
   default     = "error"
 }
 
+variable "session_driver" {
+  description = "Laravel session driver"
+  type        = string
+  default     = "redis"
+}
+
+variable "cache_driver" {
+  description = "Laravel cache driver"
+  type        = string
+  default     = "redis"
+}
+
+variable "queue_connection" {
+  description = "Laravel queue connection"
+  type        = string
+  default     = "redis"
+}
+
 # Database Configuration
 variable "db_host" {
   description = "Database host (used when create_rds_data_source if false)"
