@@ -1,3 +1,15 @@
+resource "aws_ssm_parameter" "app_key" {
+  name  = "/${var.project_name}/${var.app_env}/db/password"
+  type  = "SecureString"
+  value = var.app_key
+
+  tags = {
+    Name = "${var.project_name}-app-key"
+  }
+
+}
+
+
 # Service Discovery Namespace
 resource "aws_service_discovery_private_dns_namespace" "main" {
   count       = var.create_service_discovery ? 1 : 0
@@ -58,10 +70,6 @@ resource "aws_ecs_task_definition" "app" {
           value = tostring(var.app_debug)
         },
         {
-          name  = "APP_KEY"
-          value = var.app_key
-        },
-        {
           name  = "DB_HOST"
           value = var.db_host
         },
@@ -100,6 +108,10 @@ resource "aws_ecs_task_definition" "app" {
       ], var.additional_environment_variables)
 
       secrets = [
+        {
+          name      = "APP_KEY"
+          valueFrom = aws_ssm_parameter.app_key.arn
+        },
         {
           name      = "DB_PASSWORD"
           valueFrom = var.db_password_parameter_arn
