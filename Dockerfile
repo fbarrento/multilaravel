@@ -1,4 +1,4 @@
-FROM php:8.4-fpm-bookworm as PHP
+FROM php:8.4-fpm-bookworm as php
 LABEL authors="franciscobarrento"
 
 ENV PHP_OPCACHE_ENABLE=1
@@ -50,7 +50,7 @@ COPY ./docker/php/php.ini /usr/local/etc/php/php.ini
 COPY ./docker/php/php-fpm.conf /usr/local/etc/php-fpm.d/www.conf
 
 
-COPY docker/cron.d/scheduler /etc/cron.d/scheduler
+COPY docker/php/scheduler /etc/cron.d/scheduler
 RUN chmod 0644 /etc/cron.d/scheduler
 
 RUN touch /var/log/cron.log

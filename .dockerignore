@@ -22,7 +22,6 @@ Thumbs.db
 # Infrastructure and deployment
 infrastructure/
 .github/
-docker/
 docker-compose.yml
 docker-compose.*.yml
 
