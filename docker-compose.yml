@@ -26,8 +26,8 @@ services:
 
   web:
     build:
-      context: ./docker/nginx
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ./docker/nginx/Dockerfile
     working_dir: /var/www/main
     environment:
       - PHP_FPM_HOST=php

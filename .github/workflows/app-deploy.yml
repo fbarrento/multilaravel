@@ -143,12 +143,11 @@ jobs:
           NGINX_REPOSITORY: laravel-app/nginx
           NGINX_IMAGE_TAG: ${{ needs.determine-environment.outputs.nginx-image-tag }}
           ENVIRONMENT: ${{ needs.determine-environment.outputs.environment }}
-        working-directory: ./docker/nginx
         run: |
           echo "🏗️ Building Docker image..."
 
           # Build the image
-          docker build \
+          docker build -f ./docker/nginx/Dockerfile \
             --build-arg APP_ENV=$ENVIRONMENT \
             --tag $ECR_REGISTRY/$NGINX_REPOSITORY:$NGINX_IMAGE_TAG \
             --tag $ECR_REGISTRY/$NGINX_REPOSITORY:$ENVIRONMENT-latest \
