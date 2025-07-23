@@ -39,8 +39,7 @@ target_cpu_utilization    = 70
 target_memory_utilization = 80
 
 # Application Configuration
-app_key   = "base64:DEV_KEY_HERE_1234567890abcdefghijklmnopqrstuvwxyz="
-app_env   = "development"
+app_env   = "staging"
 app_debug = true
 log_level = "info"
 
