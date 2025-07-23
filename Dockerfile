@@ -1,4 +1,4 @@
-FROM php:8.4-fpm-bookworm as php
+FROM php:8.4-fpm-bookworm as PHP
 LABEL authors="franciscobarrento"
 
 ENV PHP_OPCACHE_ENABLE=1

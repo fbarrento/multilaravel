@@ -149,7 +149,6 @@ jobs:
 
           # Build the image
           docker build \
-            --target php \
             --build-arg APP_ENV=$ENVIRONMENT \
             --tag $ECR_REGISTRY/$NGINX_REPOSITORY:$NGINX_IMAGE_TAG \
             --tag $ECR_REGISTRY/$NGINX_REPOSITORY:$ENVIRONMENT-latest \
