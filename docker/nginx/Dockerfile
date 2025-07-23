@@ -13,15 +13,13 @@ RUN addgroup -g 1000 -S www-data || true && \
 
 RUN mkdir -p /var/cache/nginx
 
-RUN mkdir -p /usr/share/nginx/html && \
-    echo "OK" > /usr/share/nginx/html/health
 
 RUN chown -R www-data:www-data /var/cache/nginx
 
 RUN chown -R www-data:www-data /usr/share/nginx/html
 
 
-HEALTHCHECK --interval=10s --timeout=3s --retries=3 CMD curl -f http://localhost/health || exit 1
+HEALTHCHECK --interval=10s --timeout=3s --retries=3 CMD curl -f http://localhost/up || exit 1
 
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
