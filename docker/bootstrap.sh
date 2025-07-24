@@ -19,13 +19,16 @@ if [ -d bootstrap ]; then
 fi
 
 if [ "$env" != "production" ]; then
-
   php artisan migrate:fresh --seed
 
+elif [ "$env" = "local" ]; then
+  if [ ! -f .env ]; then
+    cp .env.example .env
+  fi
 else
   php artisan migrate --force
-
 fi
+
 
 
   php artisan cache:clear

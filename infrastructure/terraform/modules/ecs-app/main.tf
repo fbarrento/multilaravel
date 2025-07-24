@@ -94,6 +94,10 @@ resource "aws_ecs_task_definition" "app" {
           value = var.redis_host
         },
         {
+          name  = "REDIS_CLIENT"
+          value = "phpredis"
+        },
+        {
           name  = "LOG_CHANNEL"
           value = "stderr"
         },
