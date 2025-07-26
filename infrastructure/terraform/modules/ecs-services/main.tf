@@ -145,10 +145,6 @@ resource "aws_ecs_task_definition" "app" {
           name  = "HORIZON_PATH"
           value = "/admin/horizon"
         },
-        {
-          name  = "HORIZON_DOMAIN"
-          value = "https://multiapp.bdynamic.pt/admin"
-        }
       ], var.additional_environment_variables)
 
       secrets = [
