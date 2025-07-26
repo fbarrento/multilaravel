@@ -160,11 +160,11 @@ locals {
 resource "aws_ecs_task_definition" "services" {
   for_each = var.services
 
-  family                   = "${var.project_name}-app"
+  family                   = "${var.project_name}-${each.key}"
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
-  cpu                      = var.fargate_cpu
-  memory                   = var.fargate_memory
+  cpu                      = each.value.cpu
+  memory                   = each.value.memory
   execution_role_arn       = var.execution_role_arn
   task_role_arn            = var.task_role_arn
 
@@ -255,7 +255,7 @@ resource "aws_ecs_task_definition" "services" {
     ),
 
     # Nginx container only for app service
-    each.key == "app" ? {
+    each.key == "app" ? [{
       name      = "nginx"
       image     = var.nginx_image
       essential = true
@@ -291,7 +291,7 @@ resource "aws_ecs_task_definition" "services" {
       }
 
       workingDirectory = var.nginx_working_directory
-    } : {}
+    }] : []
   ])
 
   tags = var.tags
@@ -302,7 +302,7 @@ resource "aws_ecs_task_definition" "services" {
 resource "aws_cloudwatch_log_group" "services" {
   for_each = var.services
 
-  name              = "/${var.project_name}/${each.key}"
+  name              = "aws/ecs/${var.project_name}/${each.key}"
   retention_in_days = var.log_retention_days
 
   tags = merge(var.tags, {
@@ -358,17 +358,17 @@ resource "aws_ecs_service" "services" {
     content {
       container_name   = "app"
       container_port   = var.reverb_port
-      target_group_arn = var.app_target_group_arn
+      target_group_arn = var.reverb_target_group_arn
     }
   }
 
-  health_check_grace_period_seconds = var.health_check_grace_period
+  health_check_grace_period_seconds = lookup(each.value, "health_check_grace_period", var.health_check_grace_period)
 
   # Service Discovery
   dynamic "service_registries" {
     for_each = var.create_service_discovery ? [1] : []
     content {
-      registry_arn = aws_service_discovery_service.services[0].arn
+      registry_arn = aws_service_discovery_service.services[each.key].arn
     }
   }
 
@@ -406,7 +406,7 @@ resource "aws_appautoscaling_policy" "cpu" {
     for k, v in var.services : k => v
     if lookup(v, "autoscaling_enabled", false)
   }
-  name               = "${var.project_name}-cpu-autoscaling"
+  name               = "${var.project_name}-${each.key}-cpu-autoscaling"
   policy_type        = "TargetTrackingScaling"
   resource_id        = aws_appautoscaling_target.services[each.key].resource_id
   scalable_dimension = aws_appautoscaling_target.services[each.key].scalable_dimension
@@ -428,7 +428,7 @@ resource "aws_appautoscaling_policy" "app_memory" {
     for k, v in var.services : k => v
     if lookup(v, "autoscaling_enabled", false)
   }
-  name               = "${var.project_name}-memory-autoscaling"
+  name               = "${var.project_name}-${each.key}-memory-autoscaling"
   policy_type        = "TargetTrackingScaling"
   resource_id        = aws_appautoscaling_target.services[each.key].resource_id
   scalable_dimension = aws_appautoscaling_target.services[each.key].scalable_dimension
