@@ -71,7 +71,6 @@ broadcast_connection = "reverb"
 
 # Domain Configuration (empty for development)
 domain_name     = ""
-certificate_arn = ""
 
 # Container Images (will be updated by CI/CD)
 app_image   = "859702631282.dkr.ecr.us-east-1.amazonaws.com/between/laravel-app:development-latest"

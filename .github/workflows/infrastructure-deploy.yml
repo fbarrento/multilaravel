@@ -83,6 +83,7 @@ jobs:
       TF_VAR_db_password: ${{ secrets.DB_PASSWORD }}
       TF_VAR_app_key: ${{ secrets.APP_KEY }}
       TF_VAR_certificate_arn: ${{ secrets.CERTIFICATE_ARN }}
+      TF_VAR_cloudflare_api_token: ${{ secrets.CLOUDFLARE_API_TOKEN }}
     outputs:
       has-changes: ${{ steps.plan.outputs.has-changes }}
       exitcode: ${{ steps.plan.outputs.exitcode }}
@@ -195,6 +196,7 @@ jobs:
       TF_VAR_db_password: ${{ secrets.DB_PASSWORD }}
       TF_VAR_app_key: ${{ secrets.APP_KEY }}
       TF_VAR_certificate_arn: ${{ secrets.CERTIFICATE_ARN }}
+      TF_VAR_cloudflare_api_token: ${{ secrets.CLOUDFLARE_API_TOKEN }}
     outputs:
       app-url: ${{ steps.deploy.outputs.app-url }}
       rds-endpoint: ${{ steps.deploy.outputs.rds-endpoint }}

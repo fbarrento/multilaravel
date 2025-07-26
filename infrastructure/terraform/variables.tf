@@ -178,17 +178,6 @@ variable "log_level" {
 }
 
 # Domain Configuration
-variable "domain_name" {
-  description = "Domain name for the application"
-  type        = string
-  default     = ""
-}
-
-variable "certificate_arn" {
-  description = "Certificate ARN for HTTPS"
-  type        = string
-  default     = ""
-}
 
 # Monitoring and Logging Configuration
 variable "log_retention_days" {
@@ -357,4 +346,55 @@ variable "maintenance_window" {
   description = "Maintenance window in UTC"
   type        = string
   default     = "sun:04:00-sun:05:00"
+}
+
+# Cloudflare Configuration
+variable "cloudflare_api_token" {
+  description = "Cloudflare API token"
+  type        = string
+  default     = ""
+}
+
+variable "cloudflare_proxy_enabled" {
+  description = "Enable Cloudflare proxy (orange cloud) for DNS records"
+  type        = bool
+  default     = true
+}
+
+# DNS Configuration
+variable "domain_name" {
+  description = "Domain name"
+  type        = string
+  default     = ""
+}
+
+variable "app_subdomain" {
+  description = "Subdomain for the app (empty for root domain)"
+  type        = string
+  default     = ""
+}
+
+variable "reverb_subdomain" {
+  description = "Subdomain for the reverb (empty for root domain)"
+  type        = string
+  default     = "multiappreverb"
+}
+
+variable "create_www_record" {
+  description = "Create www record"
+  type        = bool
+  default     = false
+}
+
+# SSL Configuration (since Cloudflare can handle SSL)
+variable "use_cloudflare_ssl" {
+  description = "Use Cloudflare SSL"
+  type        = bool
+  default     = true
+}
+
+variable "certificate_arn" {
+  description = ""
+  type        = string
+  default     = "ARN of the SSL certificate in ACM (optional if using Cloudflare SSL)"
 }
