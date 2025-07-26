@@ -47,7 +47,7 @@ class AppServiceProvider extends ServiceProvider
 
            return in_array($user->email, [
                'admin@example.com',
-              'test@example.com',
+               'test@example.com',
            ]);
         });
     }

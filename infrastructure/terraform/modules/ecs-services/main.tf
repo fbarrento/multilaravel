@@ -219,8 +219,150 @@ resource "aws_ecs_task_definition" "app" {
 
       # Working directory
       workingDirectory = var.nginx_working_directory
+    }
+  ])
+
+  tags = var.tags
+
+}
+
+resource "aws_ecs_task_definition" "horizon" {
+
+  family                   = "${var.project_name}-horizon"
+  network_mode             = "awsvpc"
+  requires_compatibilities = ["FARGATE"]
+  cpu                      = var.fargate_cpu
+  memory                   = var.fargate_memory
+  execution_role_arn       = var.execution_role_arn
+  task_role_arn            = var.task_role_arn
+
+  container_definitions = jsonencode([
+    {
+      name      = "horizon",
+      image     = var.app_image
+      essential = true
+
+      environment = concat([
+        {
+          name  = "CONTAINER_ROLE"
+          value = "worker"
+        },
+        {
+          name  = "APP_ENV"
+          value = var.app_env
+        },
+        {
+          name  = "APP_DEBUG"
+          value = tostring(var.app_debug)
+        },
+        {
+          name  = "DB_HOST"
+          value = var.db_host
+        },
+        {
+          name  = "DB_PORT"
+          value = "3306"
+        },
+        {
+          name  = "DB_CONNECTION"
+          value = "mysql"
+        },
+        {
+          name  = "DB_DATABASE"
+          value = var.db_name
+        },
+        {
+          name  = "DB_USERNAME"
+          value = var.db_username
+        },
+        {
+          name  = "REDIS_HOST"
+          value = var.redis_host
+        },
+        {
+          name  = "REDIS_PORT"
+          value = "6379"
+        },
+        {
+          name  = "REDIS_SCHEME"
+          value = "tls"
+        },
+        {
+          name  = "REDIS_CACHE_DB"
+          value = "1"
+        },
+        {
+          name  = "REDIS_DB"
+          value = "0"
+        },
+        {
+          name  = "REDIS_CLIENT"
+          value = "phpredis"
+        },
+        {
+          name  = "REDIS_CLIENT"
+          value = "phpredis"
+        },
+        {
+          name  = "LOG_CHANNEL"
+          value = "stderr"
+        },
+        {
+          name  = "LOG_LEVEL"
+          value = "info"
+        },
+        {
+          name  = "LOG_STDERR_FORMATTER"
+          value = "json"
+        },
+        {
+          name  = "CACHE_STORE"
+          value = var.cache_driver
+        },
+        {
+          name  = "QUEUE_CONNECTION"
+          value = var.queue_connection
+        },
+        {
+          name  = "SESSION_DOMAIN"
+          value = ".bdynamic.pt"
+        },
+      ], var.additional_environment_variables)
+
+      secrets = [
+        {
+          name      = "APP_KEY"
+          valueFrom = aws_ssm_parameter.app_key.arn
+        },
+        {
+          name      = "DB_PASSWORD"
+          valueFrom = var.db_password_parameter_arn
+        },
+        {
+          name      = "REDIS_PASSWORD"
+          valueFrom = var.redis_password_parameter_arn
+        }
+      ]
 
 
+      healthCheck = length(var.php_health_check_command) > 0 ? {
+        command     = var.php_health_check_command
+        interval    = var.health_check_interval
+        timeout     = var.health_check_timeout
+        retries     = var.health_check_retries
+        startPeriod = 30
+      } : null
+
+      logConfiguration = {
+        logDriver = "awslogs"
+        options = {
+          "awslogs-group"         = var.app_log_group_name
+          "awslogs-region"        = var.aws_region
+          "awslogs-stream-prefix" = "ecs"
+        }
+      }
+
+      workingDirectory = var.php_working_directory
     }
   ])
 
@@ -272,8 +414,41 @@ resource "aws_ecs_service" "app" {
 
 }
 
-# Auto Scaling Target
+# ECS Service for the app
+resource "aws_ecs_service" "horizon" {
+  name            = "${var.project_name}-horizon"
+  cluster         = var.cluster_id
+  task_definition = aws_ecs_task_definition.horizon.arn
+  desired_count   = var.app_count
+  launch_type     = "FARGATE"
 
+  force_new_deployment = true
+
+  network_configuration {
+    subnets          = var.subnet_ids
+    security_groups  = var.security_group_ids
+    assign_public_ip = var.assign_pubic_ip
+  }
+
+  health_check_grace_period_seconds = var.health_check_grace_period
+
+  depends_on = [
+    aws_ecs_service.app
+  ]
+
+  # Auto Scaling
+  lifecycle {
+    ignore_changes = [desired_count]
+  }
+
+  # Platform Version
+  platform_version = var.platform_version
+
+  tags = var.tags
+
+}
+
+# Auto Scaling Target
 resource "aws_appautoscaling_target" "app" {
   count              = var.autoscaling_enabled ? 1 : 0
   max_capacity       = var.max_capacity
