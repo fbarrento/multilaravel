@@ -35,135 +35,6 @@ resource "aws_service_discovery_service" "services" {
   tags = var.tags
 }
 
-locals {
-  base_environment = [
-    {
-      name  = "APP_ENV"
-      value = tostring(var.app_env)
-    },
-    {
-      name  = "APP_DEBUG"
-      value = tostring(var.app_debug)
-    },
-    {
-      name  = "LOG_LEVEL"
-      value = tostring(var.log_level)
-    },
-    {
-      name  = "DB_HOST"
-      value = tostring(var.db_host)
-    },
-    {
-      name  = "DB_PORT"
-      value = tostring(var.db_port)
-    },
-    {
-      name  = "DB_CONNECTION"
-      value = tostring(var.db_connection)
-    },
-    {
-      name  = "DB_DATABASE"
-      value = tostring(var.db_name)
-    },
-    {
-      name  = "DB_USERNAME"
-      value = tostring(var.db_username)
-    },
-    {
-      name  = "REDIS_HOST"
-      value = tostring(var.redis_host)
-    },
-    {
-      name  = "REDIS_PORT"
-      value = tostring(var.redis_port)
-    },
-    {
-      name  = "REDIS_SCHEME"
-      value = tostring(var.redis_scheme)
-    },
-    {
-      name  = "REDIS_CACHE_DB"
-      value = tostring(var.redis_cache_db)
-    },
-    {
-      name  = "REDIS_DB"
-      value = tostring(var.redis_db)
-    },
-    {
-      name  = "REDIS_CLIENT"
-      value = tostring(var.redis_client)
-    },
-    {
-      name  = "LOG_CHANNEL"
-      value = tostring(var.log_channel)
-    },
-    {
-      name  = "LOG_STDERR_FORMATTER"
-      value = tostring(var.log_stderr_formatter)
-    },
-    {
-      name  = "CACHE_STORE"
-      value = tostring(var.cache_store)
-    },
-    {
-      name  = "QUEUE_CONNECTION"
-      value = tostring(var.queue_connection)
-    },
-    {
-      name  = "SESSION_DRIVER"
-      value = tostring(var.session_driver)
-    },
-    {
-      name  = "SESSION_DOMAIN"
-      value = tostring(var.session_domain)
-    },
-    {
-      name  = "BROADCAST_CONNECTION"
-      value = tostring(var.broadcast_connection)
-    },
-    {
-      name  = "REVERB_HOST"
-      value = tostring(var.reverb_host)
-    },
-    {
-      name  = "REVERB_PORT"
-      value = tostring(var.reverb_port)
-    },
-    {
-      name  = "REVERB_SCHEME"
-      value = tostring(var.reverb_scheme)
-    }
-  ]
-
-  base_secrets = [
-    for secret in [
-      {
-        name      = "APP_KEY"
-        valueFrom = aws_ssm_parameter.app_key.arn
-      },
-      var.db_password_parameter_arn != null && var.db_password_parameter_arn != "" ? {
-        name      = "DB_PASSWORD"
-        valueFrom = var.db_password_parameter_arn
-      } : null,
-      var.redis_password_parameter_arn != null && var.redis_password_parameter_arn != "" ? {
-        name      = "REDIS_PASSWORD"
-        valueFrom = var.redis_password_parameter_arn
-      } : null
-    ] : secret if secret != null
-  ]
-
-  # Helper functions to safely get additional variables
-  get_additional_environment = {
-    for service_name, service_config in var.services :
-    service_name => try(service_config.additional_environment, [])
-  }
-
-  get_additional_secrets = {
-    for service_name, service_config in var.services :
-    service_name => try(service_config.additional_secrets, [])
-  }
-}
-
 # ECS Task Definition
 resource "aws_ecs_task_definition" "services" {
   for_each = var.services
@@ -183,25 +54,50 @@ resource "aws_ecs_task_definition" "services" {
       image     = var.app_image
       essential = true
 
-      environment = concat(
-        local.base_environment,
-        [
-          {
-            name  = "APP_NAME"
-            value = var.project_name
-          },
-          {
-            name  = "CONTAINER_ROLE"
-            value = each.key
-          }
-        ],
-        local.get_additional_environment[each.key]
-      )
+      environment = [
+        { name = "APP_ENV", value = tostring(var.app_env) },
+        { name = "APP_DEBUG", value = tostring(var.app_debug) },
+        { name = "LOG_LEVEL", value = tostring(var.log_level) },
+        { name = "DB_HOST", value = tostring(var.db_host) },
+        { name = "DB_PORT", value = tostring(var.db_port) },
+        { name = "DB_CONNECTION", value = tostring(var.db_connection) },
+        { name = "DB_DATABASE", value = tostring(var.db_name) },
+        { name = "DB_USERNAME", value = tostring(var.db_username) },
+        { name = "REDIS_HOST", value = tostring(var.redis_host) },
+        { name = "REDIS_PORT", value = tostring(var.redis_port) },
+        { name = "REDIS_SCHEME", value = tostring(var.redis_scheme) },
+        { name = "REDIS_CACHE_DB", value = tostring(var.redis_cache_db) },
+        { name = "REDIS_DB", value = tostring(var.redis_db) },
+        { name = "REDIS_CLIENT", value = tostring(var.redis_client) },
+        { name = "LOG_CHANNEL", value = tostring(var.log_channel) },
+        { name = "LOG_STDERR_FORMATTER", value = tostring(var.log_stderr_formatter) },
+        { name = "CACHE_STORE", value = tostring(var.cache_store) },
+        { name = "QUEUE_CONNECTION", value = tostring(var.queue_connection) },
+        { name = "SESSION_DRIVER", value = tostring(var.session_driver) },
+        { name = "SESSION_DOMAIN", value = tostring(var.session_domain) },
+        { name = "BROADCAST_CONNECTION", value = tostring(var.broadcast_connection) },
+        { name = "REVERB_HOST", value = tostring(var.reverb_host) },
+        { name = "REVERB_PORT", value = tostring(var.reverb_port) },
+        { name = "REVERB_SCHEME", value = tostring(var.reverb_scheme) },
+        { name = "APP_NAME", value = tostring(var.project_name) },
+        { name = "CONTAINER_ROLE", value = tostring(each.key) }
+      ]
 
-      secrets = concat(
-        local.base_secrets,
-        local.get_additional_secrets[each.key]
-      )
+      # Simple secrets - no complex logic
+      secrets = [
+        {
+          name      = "APP_KEY"
+          valueFrom = aws_ssm_parameter.app_key.arn
+        },
+        {
+          name      = "DB_PASSWORD"
+          valueFrom = var.db_password_parameter_arn
+        },
+        {
+          name      = "REDIS_PASSWORD"
+          valueFrom = var.redis_password_parameter_arn
+        }
+      ]
 
       logConfiguration = {
         logDriver = "awslogs"
