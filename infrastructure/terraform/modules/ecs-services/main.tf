@@ -57,7 +57,6 @@ resource "aws_ecs_task_definition" "services" {
       environment = [
         { name = "APP_ENV", value = tostring(var.app_env) },
         { name = "APP_DEBUG", value = tostring(var.app_debug) },
-        { name = "LOG_LEVEL", value = tostring(var.log_level) },
         { name = "DB_HOST", value = tostring(var.db_host) },
         { name = "DB_PORT", value = tostring(var.db_port) },
         { name = "DB_CONNECTION", value = tostring(var.db_connection) },
@@ -69,6 +68,7 @@ resource "aws_ecs_task_definition" "services" {
         { name = "REDIS_CACHE_DB", value = tostring(var.redis_cache_db) },
         { name = "REDIS_DB", value = tostring(var.redis_db) },
         { name = "REDIS_CLIENT", value = tostring(var.redis_client) },
+        { name = "LOG_LEVEL", value = tostring(var.log_level) },
         { name = "LOG_CHANNEL", value = tostring(var.log_channel) },
         { name = "LOG_STDERR_FORMATTER", value = tostring(var.log_stderr_formatter) },
         { name = "CACHE_STORE", value = tostring(var.cache_store) },

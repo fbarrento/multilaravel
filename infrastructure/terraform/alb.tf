@@ -49,30 +49,6 @@ resource "aws_alb_target_group" "app" {
   }
 }
 
-resource "aws_alb_target_group" "reverb" {
-  name        = "${var.project_name}-reverb-tg"
-  port        = 8080
-  protocol    = "HTTP"
-  vpc_id      = aws_vpc.main.id
-  target_type = "ip"
-
-  health_check {
-    enabled             = true
-    path                = "/up"
-    healthy_threshold   = 2
-    interval            = 30
-    matcher             = "200"
-    port                = "traffic-port"
-    protocol            = "HTTP"
-    timeout             = 5
-    unhealthy_threshold = 2
-  }
-
-  tags = {
-    Name = "${var.project_name}-reverb-tg"
-  }
-}
-
 # ALB Listeners
 resource "aws_alb_listener" "app" {
   load_balancer_arn = aws_alb.main.id
@@ -91,7 +67,6 @@ resource "aws_alb_listener" "app" {
 
 # Host-based routing rule for Reverb subdomain
 resource "aws_alb_listener_rule" "reverb_subdomain" {
-  count        = var.certificate_arn != "" ? 1 : 0
   listener_arn = aws_alb_listener.app.arn
   priority     = 100
 
