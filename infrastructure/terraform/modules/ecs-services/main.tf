@@ -143,7 +143,7 @@ resource "aws_ecs_task_definition" "app" {
         },
         {
           name  = "HORIZON_PATH"
-          value = "/admin/horizon"
+          value = "admin/horizon"
         },
       ], var.additional_environment_variables)
 

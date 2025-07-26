@@ -44,7 +44,7 @@ class AppServiceProvider extends ServiceProvider
             if (app()->environment('local')) {
                 return true;
             }
-           return $user->email === 'test@example.com';
+           return $user?->email === 'test@example.com';
         });
     }
 
