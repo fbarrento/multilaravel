@@ -10,17 +10,13 @@ role=${CONTAINER_ROLE:-app}
 
 if [ "$role" = "worker" ]; then
   echo "Starting queue worker"
-  cd /var/www/main
-  php artisan queue:work --timeout=180 --tries=3 &
   cd /var/www/admin
-  exec php artisan queue:work --timeout=180 --tries=3
+  php artisan horizon:terminate & php artisan horizon
 
 elif [ "$role" = "websockets" ]; then
     echo "Starting websockets server"
     cd /var/www/main
-    php artisan reverb:start --host=0.0.0.0 --port=6001 &
-    cd /var/www/admin
-    exec php artisan reverb:start --host=0.0.0.0 --port=6002
+    php artisan reverb:start --host=0.0.0.0 --port=6001
 
 elif [ "$role" = "scheduler" ]; then
   crond &
