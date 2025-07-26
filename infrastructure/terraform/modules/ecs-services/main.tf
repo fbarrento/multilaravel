@@ -204,19 +204,6 @@ resource "aws_ecs_task_definition" "services" {
           }
         }
 
-        workingDirectory = each.value["working_directory"]
-
-      },
-
-      # Service-specific Configuration
-      each.key == "app" ? {
-        portMappings = [
-          {
-            containerPort = 9000
-            protocol      = "tcp"
-          }
-        ]
-
         healthCheck = {
           command     = var.php_health_check_command
           interval    = var.health_check_interval
@@ -225,33 +212,32 @@ resource "aws_ecs_task_definition" "services" {
           startPeriod = 30
         }
 
-      } : {},
+        workingDirectory = each.value["working_directory"]
 
-      each.key == "reverb" ? {
+      },
+
+      # Service-specific Configuration
+      # Add port mappings conditionally
+        each.key == "app" ? {
+        portMappings = [
+          {
+            containerPort = 9000
+            protocol      = "tcp"
+          }
+        ]
+      } : each.key == "reverb" ? {
         portMappings = [
           {
             containerPort = var.reverb_port
             protocol      = "tcp"
           }
         ]
-        healthCheck = {
-          command     = ["CMD-SHELL", "curl -f http://localhost:${var.reverb_port}/health || exit 1"]
-          interval    = var.health_check_interval
-          timeout     = var.health_check_timeout
-          retries     = var.health_check_retries
-          startPeriod = 60
-        }
-      } : {},
-      # For worker, scheduler, and horizon - no port mappings needed
-      contains(["worker", "scheduler", "horizon"], each.key) ? {
-        healthCheck = {
-          command     = ["CMD-SHELL", "ps aux | grep -E '(queue:work|schedule:run|horizon)' | grep -v grep || exit 1"]
-          interval    = var.health_check_interval
-          timeout     = var.health_check_timeout
-          retries     = var.health_check_retries
-          startPeriod = 60
-        }
-      } : {}
+      } : {
+        # No port mappings for worker, scheduler, horizon
+      },
+
+
+
     ),
 
     # Nginx container only for app service
