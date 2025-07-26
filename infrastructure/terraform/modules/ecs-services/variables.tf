@@ -291,7 +291,7 @@ variable "app_count" {
   default     = 2
 }
 
-variable "assign_pubic_ip" {
+variable "assign_public_ip" {
   description = "Assign a public IP address to the task"
   type        = bool
   default     = false
