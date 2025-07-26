@@ -135,7 +135,7 @@ locals {
     }
   ]
 
-  base_secrets = compact([
+  base_secrets_list = [
     {
       name      = "APP_KEY"
       valueFrom = aws_ssm_parameter.app_key.arn
@@ -148,7 +148,29 @@ locals {
       name      = "REDIS_PASSWORD"
       valueFrom = var.redis_password_parameter_arn
     }
-  ])
+  ]
+
+  # Additional secrets based on availability
+  db_secret = var.db_password_parameter_arn != null && var.db_password_parameter_arn != "" ? [
+    {
+      name      = "DB_PASSWORD"
+      valueFrom = var.db_password_parameter_arn
+    }
+  ] : []
+
+  redis_secret = var.redis_password_parameter_arn != null && var.redis_password_parameter_arn != "" ? [
+    {
+      name      = "REDIS_PASSWORD"
+      valueFrom = var.redis_password_parameter_arn
+    }
+  ] : []
+
+  # Combine all secrets
+  base_secrets = concat(
+    local.base_secrets_list,
+    local.db_secret,
+    local.redis_secret
+  )
 }
 
 # ECS Task Definition
