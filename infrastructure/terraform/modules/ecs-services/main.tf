@@ -23,7 +23,7 @@ resource "aws_service_discovery_private_dns_namespace" "main" {
 # Service Discovery Service
 resource "aws_service_discovery_service" "services" {
   for_each = var.create_service_discovery ? var.services : {}
-  name  = each.key
+  name     = each.key
 
   dns_config {
     namespace_id = aws_service_discovery_private_dns_namespace.main[0].id
@@ -42,29 +42,29 @@ resource "aws_service_discovery_service" "services" {
 
 locals {
   base_environment_template = templatefile("${path.module}/templates/base_environment.jsom", {
-    app_key = var.app_key
-    app_debug             = var.app_debug
-    log_level             = var.log_level
-    db_host               = var.db_host
-    db_port               = var.db_port
-    db_connection         = var.db_connection
-    db_name               = var.db_name
-    db_username           = var.db_username
-    redis_host            = var.redis_host
-    redis_port            = var.redis_port
-    redis_scheme          = var.redis_scheme
-    redis_cache_db        = var.redis_cache_db
-    redis_db              = var.redis_db
-    redis_client          = var.redis_client
-    log_channel           = var.log_channel
-    log_stderr_formatter  = var.log_stderr_formatter
-    cache_store           = var.cache_store
-    queue_connection      = var.queue_connection
-    session_domain        = var.session_domain
-    broadcast_connection  = var.broadcast_connection
-    reverb_host           = var.reverb_host
-    reverb_port           = var.reverb_port
-    reverb_scheme         = var.reverb_scheme
+    app_key              = var.app_key
+    app_debug            = var.app_debug
+    log_level            = var.log_level
+    db_host              = var.db_host
+    db_port              = var.db_port
+    db_connection        = var.db_connection
+    db_name              = var.db_name
+    db_username          = var.db_username
+    redis_host           = var.redis_host
+    redis_port           = var.redis_port
+    redis_scheme         = var.redis_scheme
+    redis_cache_db       = var.redis_cache_db
+    redis_db             = var.redis_db
+    redis_client         = var.redis_client
+    log_channel          = var.log_channel
+    log_stderr_formatter = var.log_stderr_formatter
+    cache_store          = var.cache_store
+    queue_connection     = var.queue_connection
+    session_domain       = var.session_domain
+    broadcast_connection = var.broadcast_connection
+    reverb_host          = var.reverb_host
+    reverb_port          = var.reverb_port
+    reverb_scheme        = var.reverb_scheme
   })
 
   base_environment = jsondecode(local.base_environment_template)
@@ -137,10 +137,9 @@ resource "aws_ecs_task_definition" "services" {
 
         workingDirectory = each.value["working_directory"]
 
-      }
+      },
 
       # Service-specific Configuration
-
       each.key == "app" ? {
         portMappings = [
           {
@@ -173,7 +172,7 @@ resource "aws_ecs_task_definition" "services" {
           retries     = var.health_check_retries
           startPeriod = 60
         }
-      }: {},
+      } : {},
       # For worker, scheduler, and horizon - no port mappings needed
       contains(["worker", "scheduler", "horizon"], each.key) ? {
         healthCheck = {
@@ -223,7 +222,7 @@ resource "aws_ecs_task_definition" "services" {
       }
 
       workingDirectory = var.nginx_working_directory
-    }: {}
+    } : {}
   ])
 
   tags = var.tags
@@ -234,7 +233,7 @@ resource "aws_ecs_task_definition" "services" {
 resource "aws_cloudwatch_log_group" "services" {
   for_each = var.services
 
-  name     = "/${var.project_name}/${each.key}"
+  name              = "/${var.project_name}/${each.key}"
   retention_in_days = var.log_retention_days
 
   tags = merge(var.tags, {
@@ -267,7 +266,7 @@ resource "aws_ecs_service" "services" {
   desired_count   = each.value.desired_count
   launch_type     = "FARGATE"
 
-  force_new_deployment = true
+  force_new_deployment   = true
   enable_execute_command = var.enable_execute_command
 
   network_configuration {
@@ -276,7 +275,7 @@ resource "aws_ecs_service" "services" {
     assign_public_ip = var.assign_pubic_ip
   }
 
-  dynamic load_balancer {
+  dynamic "load_balancer" {
     for_each = each.key == "app" ? [1] : []
     content {
       container_name   = "nginx"

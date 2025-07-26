@@ -1,13 +1,13 @@
 # Application Load Balancer
 
 resource "aws_security_group_rule" "ecs_reverb_from_alb" {
-  type      = "ingress"
-  from_port = 8080
-  to_port   = 8080
-  protocol  = "tcp"
-  security_group_id = aws_security_group.ecs_tasks.id
+  type                     = "ingress"
+  from_port                = 8080
+  to_port                  = 8080
+  protocol                 = "tcp"
+  security_group_id        = aws_security_group.ecs_tasks.id
   source_security_group_id = aws_security_group.alb.id
-  description = "Allow inbound traffic from ALB to ECS"
+  description              = "Allow inbound traffic from ALB to ECS"
 }
 
 resource "aws_alb" "main" {

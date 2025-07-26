@@ -576,26 +576,26 @@ module "ecs_services" {
   subnet_ids         = aws_subnet.private[*].id
   security_group_ids = [aws_security_group.ecs_tasks.id]
 
-  app_target_group_arn   = aws_alb_target_group.app.arn
+  app_target_group_arn    = aws_alb_target_group.app.arn
   reverb_target_group_arn = aws_alb_target_group.reverb.arn
 
-  aws_region         = var.aws_region
+  aws_region = var.aws_region
 
   # Container Configuration
-  nginx_image    = var.nginx_image
-  app_image      = var.app_image
+  nginx_image = var.nginx_image
+  app_image   = var.app_image
 
   # Laravel Configuration
-  app_env                      = var.app_env
-  app_debug                    = var.app_debug
-  app_key                      = var.app_key
-  log_level                    = var.log_level
+  app_env   = var.app_env
+  app_debug = var.app_debug
+  app_key   = var.app_key
+  log_level = var.log_level
 
   # Database Configuration
-  db_host                      = aws_db_instance.main.address
-  db_name                      = var.db_name
-  db_username                  = var.db_username
-  db_password_parameter_arn    = aws_ssm_parameter.db_credentials.arn
+  db_host                   = aws_db_instance.main.address
+  db_name                   = var.db_name
+  db_username               = var.db_username
+  db_password_parameter_arn = aws_ssm_parameter.db_credentials.arn
 
   # Redis Configuration
   redis_host                   = aws_elasticache_replication_group.main.primary_endpoint_address
@@ -606,21 +606,21 @@ module "ecs_services" {
   # Service Configuration
   services = {
     app = {
-      cpu    = var.fargate_cpu,
-      memory = var.fargate_memory
-      desired_count = var.app_count
+      cpu                       = var.fargate_cpu,
+      memory                    = var.fargate_memory
+      desired_count             = var.app_count
       health_check_grace_period = 300
-      autoscaling_enabled = var.enable_autoscaling
-      min_capacity = var.min_capacity
-      max_capacity = var.max_capacity
-      target_cpu_utilization = var.target_cpu_utilization
+      autoscaling_enabled       = var.enable_autoscaling
+      min_capacity              = var.min_capacity
+      max_capacity              = var.max_capacity
+      target_cpu_utilization    = var.target_cpu_utilization
       target_memory_utilization = var.target_memory_utilization
     }
 
     horizon = {
-      cpu           = var.horizon_cpu != null ? var.horizon_cpu : 512
-      memory        = var.horizon_memory != null ? var.horizon_memory : 1024
-      desired_count = var.horizon_count != null ? var.horizon_count : 1
+      cpu                 = var.horizon_cpu != null ? var.horizon_cpu : 512
+      memory              = var.horizon_memory != null ? var.horizon_memory : 1024
+      desired_count       = var.horizon_count != null ? var.horizon_count : 1
       autoscaling_enabled = false
       additional_environment = [
         {
@@ -635,16 +635,16 @@ module "ecs_services" {
     }
 
     scheduler = {
-      cpu           = 256
-      memory        = 512
-      desired_count = 1
+      cpu                 = 256
+      memory              = 512
+      desired_count       = 1
       autoscaling_enabled = false
     }
 
     reverb = {
-      cpu           = var.reverb_cpu != null ? var.reverb_cpu : 512
-      memory        = var.reverb_memory != null ? var.reverb_memory : 1024
-      desired_count = var.reverb_count != null ? var.reverb_count : 1
+      cpu                 = var.reverb_cpu != null ? var.reverb_cpu : 512
+      memory              = var.reverb_memory != null ? var.reverb_memory : 1024
+      desired_count       = var.reverb_count != null ? var.reverb_count : 1
       autoscaling_enabled = false
       additional_environment = [
         {

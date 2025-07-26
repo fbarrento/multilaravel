@@ -56,23 +56,23 @@ variable "aws_region" {
 
 variable "services" {
   description = "Map of services to deploy with their configurations"
-  type        = map(object({
-    cpu    = number
-    memory = number
-    desired_count = number
+  type = map(object({
+    cpu                       = number
+    memory                    = number
+    desired_count             = number
     health_check_grace_period = optional(number, 300)
-    autoscaling_enabled = optional(bool, false)
-    min_capacity = optional(number, 1)
-    max_capacity = optional(number, 10)
-    target_cpu_utilization = optional(number, 70)
+    autoscaling_enabled       = optional(bool, false)
+    min_capacity              = optional(number, 1)
+    max_capacity              = optional(number, 10)
+    target_cpu_utilization    = optional(number, 70)
     target_memory_utilization = optional(number, 70)
     additional_environment = optional(list(object({
-       name  = string
-       value = string
+      name  = string
+      value = string
     })), [])
     additional_secrets = optional(list(object({
-        name = string
-        valueFrom = string
+      name      = string
+      valueFrom = string
     })))
   }))
 }

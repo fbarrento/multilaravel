@@ -124,7 +124,7 @@ output "s3_bucket_domain_name" {
 output "cloudwatch_log_group_names" {
   description = "CloudWatch Log Group Names"
   value = {
-    ecs_exec   = aws_cloudwatch_log_group.ecs_exec.name
+    ecs_exec = aws_cloudwatch_log_group.ecs_exec.name
   }
 }
 
