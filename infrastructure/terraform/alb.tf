@@ -89,20 +89,6 @@ resource "aws_alb_listener" "app" {
   }
 }
 
-resource "aws_alb_listener" "reverb" {
-  load_balancer_arn = aws_alb.main.id
-  port              = 80
-  protocol          = "HTTP"
-
-  default_action {
-    target_group_arn = aws_alb_target_group.reverb.arn
-    type             = "forward"
-  }
-
-  tags = {
-    Name = "${var.project_name}-app-alb-listener"
-  }
-}
 
 # Host-based routing rule for Reverb subdomain
 resource "aws_alb_listener_rule" "reverb_subdomain" {
