@@ -41,33 +41,102 @@ resource "aws_service_discovery_service" "services" {
 
 
 locals {
-  base_environment_template = templatefile("./templates/base_environment.json", {
-    app_key              = var.app_key
-    app_debug            = var.app_debug
-    log_level            = var.log_level
-    db_host              = var.db_host
-    db_port              = var.db_port
-    db_connection        = var.db_connection
-    db_name              = var.db_name
-    db_username          = var.db_username
-    redis_host           = var.redis_host
-    redis_port           = var.redis_port
-    redis_scheme         = var.redis_scheme
-    redis_cache_db       = var.redis_cache_db
-    redis_db             = var.redis_db
-    redis_client         = var.redis_client
-    log_channel          = var.log_channel
-    log_stderr_formatter = var.log_stderr_formatter
-    cache_store          = var.cache_store
-    queue_connection     = var.queue_connection
-    session_domain       = var.session_domain
-    broadcast_connection = var.broadcast_connection
-    reverb_host          = var.reverb_host
-    reverb_port          = var.reverb_port
-    reverb_scheme        = var.reverb_scheme
-  })
+  base_environment = [
+    {
+      name  = "APP_ENV"
+      value = var.app_env
+    },
+    {
+      name  = "APP_DEBUG"
+      value = tostring(var.app_debug)
+    },
+    {
+      name  = "LOG_LEVEL"
+      value = var.log_level
+    },
+    {
+      name  = "DB_HOST"
+      value = var.db_host
+    },
+    {
+      name  = "DB_PORT"
+      value = var.db_port
+    },
+    {
+      name  = "DB_CONNECTION"
+      value = var.db_connection
+    },
+    {
+      name  = "DB_DATABASE"
+      value = var.db_name
+    },
+    {
+      name  = "DB_USERNAME"
+      value = var.db_username
+    },
+    {
+      name  = "REDIS_HOST"
+      value = var.redis_host
+    },
+    {
+      name  = "REDIS_PORT"
+      value = var.redis_port
+    },
+    {
+      name  = "REDIS_SCHEME"
+      value = var.redis_scheme
+    },
+    {
+      name  = "REDIS_CACHE_DB"
+      value = var.redis_cache_db
+    },
+    {
+      name  = "REDIS_DB"
+      value = var.redis_db
+    },
+    {
+      name  = "REDIS_CLIENT"
+      value = var.redis_client
+    },
+    {
+      name  = "LOG_CHANNEL"
+      value = var.log_channel
+    },
+    {
+      name  = "LOG_STDERR_FORMATTER"
+      value = var.log_stderr_formatter
+    },
+    {
+      name  = "CACHE_STORE"
+      value = var.cache_store
+    },
+    {
+      name  = "QUEUE_CONNECTION"
+      value = var.queue_connection
+    },
+    {
+      name  = "SESSION_DOMAIN"
+      value = var.session_domain
+    },
+    {
+      name  = "BROADCAST_CONNECTION"
+      value = var.broadcast_connection
+    },
+    {
+      name  = "REVERB_HOST"
+      value = var.reverb_host
+    },
+    {
+      name  = "REVERB_PORT"
+      value = tostring(var.reverb_port)
+    },
+    {
+      name  = "REVERB_SCHEME"
+      value = var.reverb_scheme
+    }
+  ]
 
-  base_environment = jsondecode(local.base_environment_template)
+
 
   base_secrets = [
     {
