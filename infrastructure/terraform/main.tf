@@ -685,7 +685,7 @@ resource "random_string" "bucket_suffix" {
 
 
 module "ecs_app" {
-  source = "modules/ecs-services"
+  source = "./modules/ecs-services"
 
   # Required Variables
   project_name       = var.project_name
