@@ -115,6 +115,10 @@ locals {
       value = var.queue_connection
     },
     {
+      name  = "SESSION_DRIVER"
+      value = var.session_driver
+    },
+    {
       name  = "SESSION_DOMAIN"
       value = var.session_domain
     },
@@ -187,12 +191,12 @@ resource "aws_ecs_task_definition" "services" {
               value = each.key
             }
           ],
-          lookup(each.value, "additional_environment", [])
+          lookup(each.value, "additional_environment", []) != null ? lookup(each.value, "additional_environment", []) : []
         )
 
         secrets = concat(
           local.base_secrets,
-          lookup(each.value, "additional_secrets", [])
+          lookup(each.value, "additional_secrets", []) != null ? lookup(each.value, "additional_secrets", []) : []
         )
 
         logConfiguration = {

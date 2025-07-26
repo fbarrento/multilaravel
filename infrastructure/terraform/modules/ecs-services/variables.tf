@@ -2,31 +2,37 @@
 variable "project_name" {
   description = "Name of the project"
   type        = string
+  default     = null
 }
 
 variable "cluster_id" {
   description = "ID of the ECS cluster"
   type        = string
+  default     = null
 }
 
 variable "cluster_name" {
   description = "Name of the ECS cluster"
   type        = string
+  default     = null
 }
 
 variable "execution_role_arn" {
   description = "ARN of the execution role"
   type        = string
+  default     = null
 }
 
 variable "task_role_arn" {
   description = "ARN of the task role"
   type        = string
+  default     = null
 }
 
 variable "vpc_id" {
   description = "ID of the VPC"
   type        = string
+  default     = null
 }
 
 variable "subnet_ids" {
@@ -89,17 +95,6 @@ variable "app_image" {
   type        = string
 }
 
-variable "fargate_cpu" {
-  description = "Fargate instance CPU units (1024 = 1 vCPU)"
-  type        = number
-  default     = 1024
-}
-
-variable "fargate_memory" {
-  description = "Fargate instance memory in MiB"
-  type        = number
-  default     = 2048
-}
 
 # Application Configuration
 variable "app_env" {
