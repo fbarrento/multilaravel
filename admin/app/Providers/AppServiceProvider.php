@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
@@ -32,6 +33,18 @@ class AppServiceProvider extends ServiceProvider
             return Route::post('/admin/livewire/update', $handle);
         });
 
+        $this->configurePulse();
+
+    }
+
+    private function configurePulse(): void
+    {
+        Gate::define('viewPulse', function ($user) {
+            if (app()->environment('local')) {
+                return true;
+            }
+           return $user->email === 'test@example.com';
+        });
     }
 
 }
