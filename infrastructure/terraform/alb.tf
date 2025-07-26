@@ -92,7 +92,7 @@ resource "aws_alb_listener" "app" {
 # Host-based routing rule for Reverb subdomain
 resource "aws_alb_listener_rule" "reverb_subdomain" {
   count        = var.certificate_arn != "" ? 1 : 0
-  listener_arn = aws_alb_listener.https[0].arn
+  listener_arn = aws_alb_listener.app.arn
   priority     = 100
 
   action {
