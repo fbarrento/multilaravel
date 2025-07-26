@@ -218,21 +218,21 @@ resource "aws_ecs_task_definition" "services" {
 
       # Service-specific Configuration
       # Add port mappings conditionally
-        each.key == "app" ? {
+      each.key == "app" ? {
         portMappings = [
           {
             containerPort = 9000
             protocol      = "tcp"
           }
         ]
-      } : each.key == "reverb" ? {
+        } : each.key == "reverb" ? {
         portMappings = [
           {
             containerPort = var.reverb_port
             protocol      = "tcp"
           }
         ]
-      } : {
+        } : {
         # No port mappings for worker, scheduler, horizon
       },
 
