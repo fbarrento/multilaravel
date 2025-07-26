@@ -41,7 +41,7 @@ resource "aws_service_discovery_service" "services" {
 
 
 locals {
-  base_environment_template = templatefile("${path.module}/templates/base_environment.jsom", {
+  base_environment_template = templatefile("./${path.module}/templates/base_environment.jsom", {
     app_key              = var.app_key
     app_debug            = var.app_debug
     log_level            = var.log_level
