@@ -135,42 +135,33 @@ locals {
     }
   ]
 
-  base_secrets_list = [
-    {
-      name      = "APP_KEY"
-      valueFrom = aws_ssm_parameter.app_key.arn
-    },
-    {
-      name      = "DB_PASSWORD"
-      valueFrom = var.db_password_parameter_arn
-    },
-    {
-      name      = "REDIS_PASSWORD"
-      valueFrom = var.redis_password_parameter_arn
-    }
+  base_secrets = [
+    for secret in [
+      {
+        name      = "APP_KEY"
+        valueFrom = aws_ssm_parameter.app_key.arn
+      },
+      var.db_password_parameter_arn != null && var.db_password_parameter_arn != "" ? {
+        name      = "DB_PASSWORD"
+        valueFrom = var.db_password_parameter_arn
+      } : null,
+      var.redis_password_parameter_arn != null && var.redis_password_parameter_arn != "" ? {
+        name      = "REDIS_PASSWORD"
+        valueFrom = var.redis_password_parameter_arn
+      } : null
+    ] : secret if secret != null
   ]
 
-  # Additional secrets based on availability
-  db_secret = var.db_password_parameter_arn != null && var.db_password_parameter_arn != "" ? [
-    {
-      name      = "DB_PASSWORD"
-      valueFrom = var.db_password_parameter_arn
-    }
-  ] : []
+  # Helper functions to safely get additional variables
+  get_additional_environment = {
+    for service_name, service_config in var.services :
+    service_name => try(service_config.additional_environment, [])
+  }
 
-  redis_secret = var.redis_password_parameter_arn != null && var.redis_password_parameter_arn != "" ? [
-    {
-      name      = "REDIS_PASSWORD"
-      valueFrom = var.redis_password_parameter_arn
-    }
-  ] : []
-
-  # Combine all secrets
-  base_secrets = concat(
-    local.base_secrets_list,
-    local.db_secret,
-    local.redis_secret
-  )
+  get_additional_secrets = {
+    for service_name, service_config in var.services :
+    service_name => try(service_config.additional_secrets, [])
+  }
 }
 
 # ECS Task Definition
@@ -204,12 +195,12 @@ resource "aws_ecs_task_definition" "services" {
             value = each.key
           }
         ],
-        lookup(each.value, "additional_environment", [])
+        local.get_additional_environment[each.key]
       )
 
       secrets = concat(
         local.base_secrets,
-        lookup(each.value, "additional_secrets", [])
+        local.get_additional_secrets[each.key]
       )
 
       logConfiguration = {
