@@ -174,7 +174,7 @@ resource "aws_elasticache_replication_group" "main" {
 
   # Security
   at_rest_encryption_enabled = true
-  transit_encryption_enabled = false
+  transit_encryption_enabled = true
   auth_token                 = random_password.auth_token.result
 
   # Backup Settings
