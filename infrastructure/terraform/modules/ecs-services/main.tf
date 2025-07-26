@@ -292,7 +292,7 @@ resource "aws_ecs_task_definition" "services" {
 resource "aws_cloudwatch_log_group" "services" {
   for_each = var.services
 
-  name              = "aws/ecs/${var.project_name}/${each.key}"
+  name              = "/ecs/${var.project_name}/${each.key}"
   retention_in_days = var.log_retention_days
 
   tags = merge(var.tags, {
@@ -305,7 +305,7 @@ resource "aws_cloudwatch_log_group" "services" {
 resource "aws_cloudwatch_log_group" "nginx" {
   count = contains(keys(var.services), "app") ? 1 : 0
 
-  name              = "/aws/ecs/${var.project_name}/nginx"
+  name              = "/ecs/${var.project_name}/nginx"
   retention_in_days = var.log_retention_days
 
   tags = merge(var.tags, {
