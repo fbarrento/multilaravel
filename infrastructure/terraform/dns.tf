@@ -32,7 +32,7 @@ resource "cloudflare_record" "app" {
   depends_on = [aws_alb.main]
 }
 
-resource "cloudflare_record" "app" {
+resource "cloudflare_record" "reverb" {
   count   = var.domain_name != "" && var.enable_websockets ? 1 : 0
   zone_id = data.cloudflare_zone.main[0].id
   name    = var.reverb_subdomain
