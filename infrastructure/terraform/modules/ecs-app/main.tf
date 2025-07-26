@@ -130,17 +130,17 @@ resource "aws_ecs_task_definition" "app" {
           value = "json"
         },
         {
-          name  = "SESSION_DRIVER"
-          value = var.session_driver
-        },
-        {
           name  = "CACHE_STORE"
           value = var.cache_driver
         },
         {
           name  = "QUEUE_CONNECTION"
           value = var.queue_connection
-        }
+        },
+        {
+          name  = "SESSION_DOMAIN"
+          value = ".bdynamic.pt"
+        },
       ], var.additional_environment_variables)
 
       secrets = [
