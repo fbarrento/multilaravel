@@ -216,7 +216,7 @@ resource "aws_ecs_task_definition" "services" {
           startPeriod = 30
         }
 
-        workingDirectory = each.value["working_directory"]
+        workingDirectory = var.php_working_directory
 
       },
 
