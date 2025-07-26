@@ -92,7 +92,7 @@ services:
     environment:
       - APP_ENV=${APP_ENV:-local}
       - CONTAINER_ROLE=worker
-    working_dir: /var/www/main
+    working_dir: /var/www/admin
     depends_on:
       php:
         condition: service_healthy
