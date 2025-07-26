@@ -44,7 +44,7 @@ locals {
   base_environment = [
     {
       name  = "APP_ENV"
-      value = var.app_env
+      value = tostring(var.app_env)
     },
     {
       name  = "APP_DEBUG"
@@ -52,83 +52,83 @@ locals {
     },
     {
       name  = "LOG_LEVEL"
-      value = var.log_level
+      value = tostring(var.log_level)
     },
     {
       name  = "DB_HOST"
-      value = var.db_host
+      value = tostring(var.db_host)
     },
     {
       name  = "DB_PORT"
-      value = var.db_port
+      value = tostring(var.db_port)
     },
     {
       name  = "DB_CONNECTION"
-      value = var.db_connection
+      value = tostring(var.db_connection)
     },
     {
       name  = "DB_DATABASE"
-      value = var.db_name
+      value = tostring(var.db_name)
     },
     {
       name  = "DB_USERNAME"
-      value = var.db_username
+      value = tostring(var.db_username)
     },
     {
       name  = "REDIS_HOST"
-      value = var.redis_host
+      value = tostring(var.redis_host)
     },
     {
       name  = "REDIS_PORT"
-      value = var.redis_port
+      value = tostring(var.redis_port)
     },
     {
       name  = "REDIS_SCHEME"
-      value = var.redis_scheme
+      value = tostring(var.redis_scheme)
     },
     {
       name  = "REDIS_CACHE_DB"
-      value = var.redis_cache_db
+      value = tostring(var.redis_cache_db)
     },
     {
       name  = "REDIS_DB"
-      value = var.redis_db
+      value = tostring(var.redis_db)
     },
     {
       name  = "REDIS_CLIENT"
-      value = var.redis_client
+      value = tostring(var.redis_client)
     },
     {
       name  = "LOG_CHANNEL"
-      value = var.log_channel
+      value = tostring(var.log_channel)
     },
     {
       name  = "LOG_STDERR_FORMATTER"
-      value = var.log_stderr_formatter
+      value = tostring(var.log_stderr_formatter)
     },
     {
       name  = "CACHE_STORE"
-      value = var.cache_store
+      value = tostring(var.cache_store)
     },
     {
       name  = "QUEUE_CONNECTION"
-      value = var.queue_connection
+      value = tostring(var.queue_connection)
     },
     {
       name  = "SESSION_DRIVER"
-      value = var.session_driver
+      value = tostring(var.session_driver)
     },
     {
       name  = "SESSION_DOMAIN"
-      value = var.session_domain
+      value = tostring(var.session_domain)
     },
     {
       name  = "BROADCAST_CONNECTION"
-      value = var.broadcast_connection
+      value = tostring(var.broadcast_connection)
     },
     {
       name  = "REVERB_HOST"
-      value = var.reverb_host
+      value = tostring(var.reverb_host)
     },
     {
       name  = "REVERB_PORT"
@@ -136,7 +136,7 @@ locals {
     },
     {
       name  = "REVERB_SCHEME"
-      value = var.reverb_scheme
+      value = tostring(var.reverb_scheme)
     }
   ]
 
