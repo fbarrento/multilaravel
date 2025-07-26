@@ -15,7 +15,7 @@ resource "cloudflare_record" "app" {
   name    = var.app_subdomain != "" ? var.app_subdomain : "@"
   type    = "CNAME"
   content = aws_alb.main.dns_name
-  ttl     = 300
+  ttl     = 1
   proxied = var.cloudflare_proxy_enabled
 
   comment = "ALB for ${var.project_name} application"
@@ -29,7 +29,7 @@ resource "cloudflare_record" "reverb" {
   name    = var.reverb_subdomain
   type    = "CNAME"
   content = aws_alb.main.dns_name
-  ttl     = 300
+  ttl     = 1
   proxied = var.cloudflare_proxy_enabled
 
   comment = "Reverb WebSocket service for ${var.project_name}"
