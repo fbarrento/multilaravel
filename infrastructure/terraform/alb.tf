@@ -49,6 +49,30 @@ resource "aws_alb_target_group" "app" {
   }
 }
 
+resource "aws_alb_target_group" "reverb" {
+  name        = "${var.project_name}-reverb-tg"
+  port        = 8080
+  protocol    = "HTTP"
+  vpc_id      = aws_vpc.main.id
+  target_type = "ip"
+
+  health_check {
+    enabled             = true
+    path                = "/up"
+    healthy_threshold   = 2
+    interval            = 30
+    matcher             = "200"
+    port                = "traffic-port"
+    protocol            = "HTTP"
+    timeout             = 5
+    unhealthy_threshold = 2
+  }
+
+  tags = {
+    Name = "${var.project_name}-reverb-tg"
+  }
+}
+
 # ALB Listeners
 resource "aws_alb_listener" "app" {
   load_balancer_arn = aws_alb.main.id
@@ -57,6 +81,21 @@ resource "aws_alb_listener" "app" {
 
   default_action {
     target_group_arn = aws_alb_target_group.app.arn
+    type             = "forward"
+  }
+
+  tags = {
+    Name = "${var.project_name}-app-alb-listener"
+  }
+}
+
+resource "aws_alb_listener" "reverb" {
+  load_balancer_arn = aws_alb.main.id
+  port              = 80
+  protocol          = "HTTP"
+
+  default_action {
+    target_group_arn = aws_alb_target_group.reverb.arn
     type             = "forward"
   }
 
