@@ -13,8 +13,8 @@ if [ "$role" = "worker" ]; then
   cd /var/www/admin
   php artisan horizon:terminate & php artisan horizon
 
-elif [ "$role" = "websockets" ]; then
-    echo "Starting websockets server"
+elif [ "$role" = "reverb" ]; then
+    echo "Starting reverb server"
     cd /var/www/main
     php artisan reverb:start --host=0.0.0.0 --port=6001
 

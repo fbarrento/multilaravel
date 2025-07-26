@@ -21,9 +21,9 @@ resource "aws_service_discovery_private_dns_namespace" "main" {
 }
 
 # Service Discovery Service
-resource "aws_service_discovery_service" "app" {
-  count = var.create_service_discovery ? 1 : 0
-  name  = "app"
+resource "aws_service_discovery_service" "services" {
+  for_each = var.create_service_discovery ? var.services : {}
+  name  = each.key
 
   dns_config {
     namespace_id = aws_service_discovery_private_dns_namespace.main[0].id
@@ -39,8 +39,57 @@ resource "aws_service_discovery_service" "app" {
   tags = var.tags
 }
 
+
+locals {
+  base_environment_template = templatefile("${path.module}/templates/base_environment.jsom", {
+    app_key = var.app_key
+    app_debug             = var.app_debug
+    log_level             = var.log_level
+    db_host               = var.db_host
+    db_port               = var.db_port
+    db_connection         = var.db_connection
+    db_name               = var.db_name
+    db_username           = var.db_username
+    redis_host            = var.redis_host
+    redis_port            = var.redis_port
+    redis_scheme          = var.redis_scheme
+    redis_cache_db        = var.redis_cache_db
+    redis_db              = var.redis_db
+    redis_client          = var.redis_client
+    log_channel           = var.log_channel
+    log_stderr_formatter  = var.log_stderr_formatter
+    cache_store           = var.cache_store
+    queue_connection      = var.queue_connection
+    session_domain        = var.session_domain
+    broadcast_connection  = var.broadcast_connection
+    reverb_host           = var.reverb_host
+    reverb_port           = var.reverb_port
+    reverb_scheme         = var.reverb_scheme
+  })
+
+  base_environment = jsondecode(local.base_environment_template)
+
+  base_secrets = [
+    {
+      name      = "APP_KEY"
+      valueFrom = aws_ssm_parameter.app_key.arn
+    },
+    {
+      name      = "DB_PASSWORD"
+      valueFrom = var.db_password_parameter_arn
+    },
+    {
+      name      = "REDIS_PASSWORD"
+      valueFrom = var.redis_password_parameter_arn
+    }
+  ]
+}
+
+
+
 # ECS Task Definition
-resource "aws_ecs_task_definition" "app" {
+resource "aws_ecs_task_definition" "services" {
+  for_each = var.services
 
   family                   = "${var.project_name}-app"
   network_mode             = "awsvpc"
@@ -51,143 +100,97 @@ resource "aws_ecs_task_definition" "app" {
   task_role_arn            = var.task_role_arn
 
   container_definitions = jsonencode([
-    {
-      name      = "php",
-      image     = var.app_image
-      essential = true
+    merge(
+      {
+        name      = "app",
+        image     = var.app_image
+        essential = true
 
-      environment = concat([
-        {
-          name  = "CONTAINER_ROLE"
-          value = "app"
-        },
-        {
-          name  = "APP_ENV"
-          value = var.app_env
-        },
-        {
-          name  = "APP_DEBUG"
-          value = tostring(var.app_debug)
-        },
-        {
-          name  = "DB_HOST"
-          value = var.db_host
-        },
-        {
-          name  = "DB_PORT"
-          value = "3306"
-        },
-        {
-          name  = "DB_CONNECTION"
-          value = "mysql"
-        },
-        {
-          name  = "DB_DATABASE"
-          value = var.db_name
-        },
-        {
-          name  = "DB_USERNAME"
-          value = var.db_username
-        },
-        {
-          name  = "REDIS_HOST"
-          value = var.redis_host
-        },
-        {
-          name  = "REDIS_PORT"
-          value = "6379"
-        },
-        {
-          name  = "REDIS_SCHEME"
-          value = "tls"
-        },
-        {
-          name  = "REDIS_CACHE_DB"
-          value = "1"
-        },
-        {
-          name  = "REDIS_DB"
-          value = "0"
-        },
-        {
-          name  = "REDIS_CLIENT"
-          value = "phpredis"
-        },
-        {
-          name  = "REDIS_CLIENT"
-          value = "phpredis"
-        },
-        {
-          name  = "LOG_CHANNEL"
-          value = "stderr"
-        },
-        {
-          name  = "LOG_LEVEL"
-          value = "info"
-        },
-        {
-          name  = "LOG_STDERR_FORMATTER"
-          value = "json"
-        },
-        {
-          name  = "CACHE_STORE"
-          value = var.cache_driver
-        },
-        {
-          name  = "QUEUE_CONNECTION"
-          value = var.queue_connection
-        },
-        {
-          name  = "SESSION_DOMAIN"
-          value = ".bdynamic.pt"
-        },
-        {
-          name  = "HORIZON_PATH"
-          value = "admin/horizon"
-        },
-      ], var.additional_environment_variables)
+        environment = concat(
+          local.base_environment,
+          [
+            {
+              name  = "APP_NAME"
+              value = var.project_name
+            },
+            {
+              name  = "CONTAINER_ROLE"
+              value = each.key
+            }
+          ],
+          lookup(each.value, "additional_environment", [])
+        )
 
-      secrets = [
-        {
-          name      = "APP_KEY"
-          valueFrom = aws_ssm_parameter.app_key.arn
-        },
-        {
-          name      = "DB_PASSWORD"
-          valueFrom = var.db_password_parameter_arn
-        },
-        {
-          name      = "REDIS_PASSWORD"
-          valueFrom = var.redis_password_parameter_arn
+        secrets = concat(
+          local.base_secrets,
+          lookup(each.value, "additional_secrets", [])
+        )
+
+        logConfiguration = {
+          logDriver = "awslogs"
+          options = {
+            awslogs-group         = aws_cloudwatch_log_group.services[each.key].name
+            awslogs-region        = var.aws_region
+            awslogs-stream-prefix = "ecs"
+          }
         }
-      ]
 
+        workingDirectory = each.value["working_directory"]
 
-      healthCheck = length(var.php_health_check_command) > 0 ? {
-        command     = var.php_health_check_command
-        interval    = var.health_check_interval
-        timeout     = var.health_check_timeout
-        retries     = var.health_check_retries
-        startPeriod = 30
-      } : null
-
-      logConfiguration = {
-        logDriver = "awslogs"
-        options = {
-          "awslogs-group"         = var.app_log_group_name
-          "awslogs-region"        = var.aws_region
-          "awslogs-stream-prefix" = "ecs"
-        }
       }
 
-      workingDirectory = var.php_working_directory
-    },
-    {
+      # Service-specific Configuration
+
+      each.key == "app" ? {
+        portMappings = [
+          {
+            containerPort = 9000
+            protocol      = "tcp"
+          }
+        ]
+
+        healthCheck = {
+          command     = var.php_health_check_command
+          interval    = var.health_check_interval
+          timeout     = var.health_check_timeout
+          retries     = var.health_check_retries
+          startPeriod = 30
+        }
+
+      } : {},
+
+      each.key == "reverb" ? {
+        portMappings = [
+          {
+            containerPort = var.reverb_port
+            protocol      = "tcp"
+          }
+        ]
+        healthCheck = {
+          command     = ["CMD-SHELL", "curl -f http://localhost:${var.reverb_port}/health || exit 1"]
+          interval    = var.health_check_interval
+          timeout     = var.health_check_timeout
+          retries     = var.health_check_retries
+          startPeriod = 60
+        }
+      }: {},
+      # For worker, scheduler, and horizon - no port mappings needed
+      contains(["worker", "scheduler", "horizon"], each.key) ? {
+        healthCheck = {
+          command     = ["CMD-SHELL", "ps aux | grep -E '(queue:work|schedule:run|horizon)' | grep -v grep || exit 1"]
+          interval    = var.health_check_interval
+          timeout     = var.health_check_timeout
+          retries     = var.health_check_retries
+          startPeriod = 60
+        }
+      } : {}
+    ),
+
+    # Nginx container only for app service
+    each.key == "app" ? {
       name      = "nginx"
       image     = var.nginx_image
       essential = true
-
-      # Port mappings
       portMappings = [
         {
           containerPort = 80
@@ -197,12 +200,11 @@ resource "aws_ecs_task_definition" "app" {
 
       dependsOn = [
         {
-          containerName = "php"
+          containerName = "app"
           condition     = "HEALTHY"
         }
       ]
 
-      # Healthcheck
       healthCheck = {
         command     = var.nginx_health_check_command
         interval    = var.health_check_interval
@@ -211,178 +213,62 @@ resource "aws_ecs_task_definition" "app" {
         startPeriod = 30
       }
 
-      # Logging configuration
       logConfiguration = {
         logDriver = "awslogs"
         options = {
-          "awslogs-group"         = var.nginx_log_group_name
+          "awslogs-group"         = aws_cloudwatch_log_group.nginx[0].name
           "awslogs-region"        = var.aws_region
           "awslogs-stream-prefix" = "ecs"
         }
       }
 
-      # Working directory
       workingDirectory = var.nginx_working_directory
-    }
+    }: {}
   ])
 
   tags = var.tags
 
 }
 
-resource "aws_ecs_task_definition" "horizon" {
+# CloudWatch Log Group for services
+resource "aws_cloudwatch_log_group" "services" {
+  for_each = var.services
 
-  family                   = "${var.project_name}-horizon"
-  network_mode             = "awsvpc"
-  requires_compatibilities = ["FARGATE"]
-  cpu                      = var.fargate_cpu
-  memory                   = var.fargate_memory
-  execution_role_arn       = var.execution_role_arn
-  task_role_arn            = var.task_role_arn
+  name     = "/${var.project_name}/${each.key}"
+  retention_in_days = var.log_retention_days
 
-  container_definitions = jsonencode([
-    {
-      name      = "horizon",
-      image     = var.app_image
-      essential = true
-
-      environment = concat([
-        {
-          name  = "CONTAINER_ROLE"
-          value = "worker"
-        },
-        {
-          name  = "APP_ENV"
-          value = var.app_env
-        },
-        {
-          name  = "APP_DEBUG"
-          value = tostring(var.app_debug)
-        },
-        {
-          name  = "DB_HOST"
-          value = var.db_host
-        },
-        {
-          name  = "DB_PORT"
-          value = "3306"
-        },
-        {
-          name  = "DB_CONNECTION"
-          value = "mysql"
-        },
-        {
-          name  = "DB_DATABASE"
-          value = var.db_name
-        },
-        {
-          name  = "DB_USERNAME"
-          value = var.db_username
-        },
-        {
-          name  = "REDIS_HOST"
-          value = var.redis_host
-        },
-        {
-          name  = "REDIS_PORT"
-          value = "6379"
-        },
-        {
-          name  = "REDIS_SCHEME"
-          value = "tls"
-        },
-        {
-          name  = "REDIS_CACHE_DB"
-          value = "1"
-        },
-        {
-          name  = "REDIS_DB"
-          value = "0"
-        },
-        {
-          name  = "REDIS_CLIENT"
-          value = "phpredis"
-        },
-        {
-          name  = "REDIS_CLIENT"
-          value = "phpredis"
-        },
-        {
-          name  = "LOG_CHANNEL"
-          value = "stderr"
-        },
-        {
-          name  = "LOG_LEVEL"
-          value = "info"
-        },
-        {
-          name  = "LOG_STDERR_FORMATTER"
-          value = "json"
-        },
-        {
-          name  = "CACHE_STORE"
-          value = var.cache_driver
-        },
-        {
-          name  = "QUEUE_CONNECTION"
-          value = var.queue_connection
-        },
-        {
-          name  = "SESSION_DOMAIN"
-          value = ".bdynamic.pt"
-        },
-      ], var.additional_environment_variables)
-
-      secrets = [
-        {
-          name      = "APP_KEY"
-          valueFrom = aws_ssm_parameter.app_key.arn
-        },
-        {
-          name      = "DB_PASSWORD"
-          valueFrom = var.db_password_parameter_arn
-        },
-        {
-          name      = "REDIS_PASSWORD"
-          valueFrom = var.redis_password_parameter_arn
-        }
-      ]
-
-
-      healthCheck = length(var.php_health_check_command) > 0 ? {
-        command     = var.php_health_check_command
-        interval    = var.health_check_interval
-        timeout     = var.health_check_timeout
-        retries     = var.health_check_retries
-        startPeriod = 30
-      } : null
-
-      logConfiguration = {
-        logDriver = "awslogs"
-        options = {
-          "awslogs-group"         = var.app_log_group_name
-          "awslogs-region"        = var.aws_region
-          "awslogs-stream-prefix" = "ecs"
-        }
-      }
-
-      workingDirectory = var.php_working_directory
-    }
-  ])
-
-  tags = var.tags
+  tags = merge(var.tags, {
+    Name = "${var.project_name}-${each.key}-logs"
+  })
 
 }
+
+# Nginx log group (only created for app service)
+resource "aws_cloudwatch_log_group" "nginx" {
+  count = contains(keys(var.services), "app") ? 1 : 0
+
+  name              = "/aws/ecs/${var.project_name}/nginx"
+  retention_in_days = var.log_retention_days
+
+  tags = merge(var.tags, {
+    Name = "${var.project_name}-nginx-logs"
+  })
+}
+
 
 # ECS Service for the app
-resource "aws_ecs_service" "app" {
-  name            = "${var.project_name}-app"
+resource "aws_ecs_service" "services" {
+  for_each = var.services
+
+
+  name            = "${var.project_name}-${each.key}"
   cluster         = var.cluster_id
-  task_definition = aws_ecs_task_definition.app.arn
-  desired_count   = var.app_count
+  task_definition = aws_ecs_task_definition.services[each.key].arn
+  desired_count   = each.value.desired_count
   launch_type     = "FARGATE"
 
   force_new_deployment = true
+  enable_execute_command = var.enable_execute_command
 
   network_configuration {
     subnets          = var.subnet_ids
@@ -390,10 +276,22 @@ resource "aws_ecs_service" "app" {
     assign_public_ip = var.assign_pubic_ip
   }
 
-  load_balancer {
-    container_name   = "nginx"
-    container_port   = 80
-    target_group_arn = var.target_group_arn
+  dynamic load_balancer {
+    for_each = each.key == "app" ? [1] : []
+    content {
+      container_name   = "nginx"
+      container_port   = 80
+      target_group_arn = var.app_target_group_arn
+    }
+  }
+
+  dynamic "load_balancer" {
+    for_each = each.key == "reverb" ? [1] : []
+    content {
+      container_name   = "app"
+      container_port   = var.reverb_port
+      target_group_arn = var.app_target_group_arn
+    }
   }
 
   health_check_grace_period_seconds = var.health_check_grace_period
@@ -402,7 +300,7 @@ resource "aws_ecs_service" "app" {
   dynamic "service_registries" {
     for_each = var.create_service_discovery ? [1] : []
     content {
-      registry_arn = aws_service_discovery_service.app[0].arn
+      registry_arn = aws_service_discovery_service.services[0].arn
     }
   }
 
@@ -418,46 +316,16 @@ resource "aws_ecs_service" "app" {
 
 }
 
-# ECS Service for the app
-resource "aws_ecs_service" "horizon" {
-  name            = "${var.project_name}-horizon"
-  cluster         = var.cluster_id
-  task_definition = aws_ecs_task_definition.horizon.arn
-  desired_count   = var.app_count
-  launch_type     = "FARGATE"
-
-  force_new_deployment = true
-
-  network_configuration {
-    subnets          = var.subnet_ids
-    security_groups  = var.security_group_ids
-    assign_public_ip = var.assign_pubic_ip
-  }
-
-  health_check_grace_period_seconds = var.health_check_grace_period
-
-  depends_on = [
-    aws_ecs_service.app
-  ]
-
-  # Auto Scaling
-  lifecycle {
-    ignore_changes = [desired_count]
-  }
-
-  # Platform Version
-  platform_version = var.platform_version
-
-  tags = var.tags
-
-}
 
 # Auto Scaling Target
-resource "aws_appautoscaling_target" "app" {
-  count              = var.autoscaling_enabled ? 1 : 0
-  max_capacity       = var.max_capacity
-  min_capacity       = var.min_capacity
-  resource_id        = "service/${var.cluster_name}/${aws_ecs_service.app.name}"
+resource "aws_appautoscaling_target" "services" {
+  for_each = {
+    for k, v in var.services : k => v
+    if lookup(v, "autoscaling_enabled", false)
+  }
+  max_capacity       = each.value.max_capacity
+  min_capacity       = each.value.min_capacity
+  resource_id        = "service/${var.cluster_name}/${aws_ecs_service.services[each.key].name}"
   scalable_dimension = "ecs:service:DesiredCount"
   service_namespace  = "ecs"
 
@@ -465,19 +333,22 @@ resource "aws_appautoscaling_target" "app" {
 }
 
 # CPU-based Auto Scaling Policy
-resource "aws_appautoscaling_policy" "app_cpu" {
-  count              = var.autoscaling_enabled ? 1 : 0
+resource "aws_appautoscaling_policy" "cpu" {
+  for_each = {
+    for k, v in var.services : k => v
+    if lookup(v, "autoscaling_enabled", false)
+  }
   name               = "${var.project_name}-cpu-autoscaling"
   policy_type        = "TargetTrackingScaling"
-  resource_id        = aws_appautoscaling_target.app[0].resource_id
-  scalable_dimension = aws_appautoscaling_target.app[0].scalable_dimension
-  service_namespace  = aws_appautoscaling_target.app[0].service_namespace
+  resource_id        = aws_appautoscaling_target.services[each.key].resource_id
+  scalable_dimension = aws_appautoscaling_target.services[each.key].scalable_dimension
+  service_namespace  = aws_appautoscaling_target.services[each.key].service_namespace
 
   target_tracking_scaling_policy_configuration {
     predefined_metric_specification {
       predefined_metric_type = "ECSServiceAverageCPUUtilization"
     }
-    target_value       = var.target_cpu_utilization
+    target_value       = lookup(each.value, "target_cpu_utilization", var.target_cpu_utilization)
     scale_in_cooldown  = var.scale_in_cooldown
     scale_out_cooldown = var.scale_out_cooldown
   }
@@ -485,18 +356,21 @@ resource "aws_appautoscaling_policy" "app_cpu" {
 
 # Memory-based Auto Scaling Policy
 resource "aws_appautoscaling_policy" "app_memory" {
-  count              = var.autoscaling_enabled ? 1 : 0
+  for_each = {
+    for k, v in var.services : k => v
+    if lookup(v, "autoscaling_enabled", false)
+  }
   name               = "${var.project_name}-memory-autoscaling"
   policy_type        = "TargetTrackingScaling"
-  resource_id        = aws_appautoscaling_target.app[0].resource_id
-  scalable_dimension = aws_appautoscaling_target.app[0].scalable_dimension
-  service_namespace  = aws_appautoscaling_target.app[0].service_namespace
+  resource_id        = aws_appautoscaling_target.services[each.key].resource_id
+  scalable_dimension = aws_appautoscaling_target.services[each.key].scalable_dimension
+  service_namespace  = aws_appautoscaling_target.services[each.key].service_namespace
 
   target_tracking_scaling_policy_configuration {
     predefined_metric_specification {
       predefined_metric_type = "ECSServiceAverageMemoryUtilization"
     }
-    target_value       = var.target_memory_utilization
+    target_value       = lookup(each.value, "target_memory_utilization", var.target_memory_utilization)
     scale_in_cooldown  = var.scale_in_cooldown
     scale_out_cooldown = var.scale_out_cooldown
   }

@@ -61,7 +61,7 @@ services:
       - ./main:/var/www/main
 
 
-  websockets:
+  reverb:
     build:
       context: .
       dockerfile: Dockerfile
@@ -70,7 +70,7 @@ services:
         - APP_ENV=${APP_ENV:-local}
     environment:
       - APP_ENV=${APP_ENV:-local}
-      - CONTAINER_ROLE=websockets
+      - CONTAINER_ROLE=reverb
     working_dir: /var/www/main
     ports:
       - "6001:6001"

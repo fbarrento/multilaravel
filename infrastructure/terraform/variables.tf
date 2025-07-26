@@ -66,19 +66,37 @@ variable "fargate_memory" {
   default     = 2048
 }
 
-variable "worker_cpu" {
+variable "horizon_cpu" {
   description = "Fargate instance CPU units (1024 = 1 vCPU)"
   type        = number
   default     = 512
 }
 
-variable "worker_memory" {
+variable "horizon_memory" {
   description = "Fargate instance memory in MiB"
   type        = number
   default     = 1024
 }
 
-variable "worker_count" {
+variable "horizon_count" {
+  description = "The number of worker instances to run"
+  type        = number
+  default     = 1
+}
+
+variable "reverb_cpu" {
+  description = "Fargate instance CPU units (1024 = 1 vCPU)"
+  type        = number
+  default     = 512
+}
+
+variable "reverb_memory" {
+  description = "Fargate instance memory in MiB"
+  type        = number
+  default     = 1024
+}
+
+variable "reverb_count" {
   description = "The number of worker instances to run"
   type        = number
   default     = 1

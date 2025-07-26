@@ -61,10 +61,6 @@ output "alb_target_group_arn" {
   value       = aws_alb_target_group.app.arn
 }
 
-output "websockets_target_group_arn" {
-  description = "Websockets Target Group ARN"
-  value       = aws_alb_target_group.websockets.arn
-}
 
 # Security Group Outputs
 output "alb_security_group_id" {
@@ -128,11 +124,6 @@ output "s3_bucket_domain_name" {
 output "cloudwatch_log_group_names" {
   description = "CloudWatch Log Group Names"
   value = {
-    app        = aws_cloudwatch_log_group.app.name
-    nginx      = aws_cloudwatch_log_group.nginx.name
-    worker     = aws_cloudwatch_log_group.worker.name
-    scheduler  = aws_cloudwatch_log_group.scheduler.name
-    websockets = aws_cloudwatch_log_group.websockets.name
     ecs_exec   = aws_cloudwatch_log_group.ecs_exec.name
   }
 }
@@ -140,7 +131,7 @@ output "cloudwatch_log_group_names" {
 # Application URL
 output "application_url" {
   description = "Application URL"
-  value       = "http://${aws_alb.main.dns_name}"
+  value       = "https://${aws_alb.main.dns_name}"
 }
 
 # Environment Information

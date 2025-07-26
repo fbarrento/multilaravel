@@ -39,14 +39,42 @@ variable "security_group_ids" {
   type        = list(string)
 }
 
-variable "target_group_arn" {
-  description = "ARN of the ALB target group"
+variable "app_target_group_arn" {
+  description = "ARN of the ALB target group for app service"
+  type        = string
+}
+
+variable "reverb_target_group_arn" {
+  description = "ARN of the ALB target group for reverb service"
   type        = string
 }
 
 variable "aws_region" {
   description = "AWS region"
   type        = string
+}
+
+variable "services" {
+  description = "Map of services to deploy with their configurations"
+  type        = map(object({
+    cpu    = number
+    memory = number
+    desired_count = number
+    health_check_grace_period = optional(number, 300)
+    autoscaling_enabled = optional(bool, false)
+    min_capacity = optional(number, 1)
+    max_capacity = optional(number, 10)
+    target_cpu_utilization = optional(number, 70)
+    target_memory_utilization = optional(number, 70)
+    additional_environment = optional(list(object({
+       name  = string
+       value = string
+    })), [])
+    additional_secrets = optional(list(object({
+        name = string
+        valueFrom = string
+    })))
+  }))
 }
 
 # Container Configuration
@@ -90,22 +118,18 @@ variable "app_key" {
   sensitive   = true
 }
 
-variable "log_level" {
-  description = "Laravel application log level"
-  type        = string
-  default     = "error"
-}
 
+# Session Configuration
 variable "session_driver" {
   description = "Laravel session driver"
   type        = string
   default     = "redis"
 }
 
-variable "cache_driver" {
-  description = "Laravel cache driver"
+variable "session_domain" {
+  description = "Laravel session domain"
   type        = string
-  default     = "redis"
+  default     = ""
 }
 
 variable "queue_connection" {
@@ -115,6 +139,11 @@ variable "queue_connection" {
 }
 
 # Database Configuration
+variable "db_connection" {
+  description = "Database connection"
+  type        = string
+  default     = "mysql"
+}
 variable "db_host" {
   description = "Database host (used when create_rds_data_source if false)"
   type        = string
@@ -124,6 +153,12 @@ variable "db_host" {
 variable "db_name" {
   description = "Database name (used when create_rds_data_source if false)"
   type        = string
+}
+
+variable "db_port" {
+  description = "Database port (used when create_rds_data_source if false)"
+  type        = number
+  default     = 3306
 }
 
 variable "db_username" {
@@ -141,6 +176,19 @@ variable "db_password" {
 variable "db_password_parameter_arn" {
   description = "ARN of the parameter store for the database password"
   type        = string
+}
+
+# Cache Configuration
+variable "cache_store" {
+  description = "Cache store"
+  type        = string
+  default     = "redis"
+}
+
+variable "cache_driver" {
+  description = "Laravel cache driver"
+  type        = string
+  default     = "redis"
 }
 
 # Redis Configuration
@@ -167,16 +215,79 @@ variable "redis_password_parameter_arn" {
   type        = string
 }
 
-# Logging Configuration
-variable "app_log_group_name" {
-  description = "CloudWatch log group name for app container"
+variable "redis_scheme" {
+  description = "Redis scheme tls or tcp (default: tls)"
+  type        = string
+  default     = "tls"
+}
+
+variable "redis_cache_db" {
+  description = "Redis cache database"
+  type        = number
+  default     = 1
+}
+
+variable "redis_db" {
+  description = "Redis database"
+  type        = number
+  default     = 0
+}
+
+variable "redis_client" {
+  description = "Redis client"
+  type        = string
+  default     = "phpredis"
+}
+
+# Broadcaster Configuration
+variable "broadcast_connection" {
+  description = "Broadcaster connection"
+  type        = string
+  default     = "reverb"
+}
+
+variable "reverb_host" {
+  description = "Reverb host"
   type        = string
 }
 
-variable "nginx_log_group_name" {
-  description = "CloudWatch log group name for nginx container"
-  type        = string
+variable "reverb_port" {
+  description = "Reverb port"
+  type        = number
+  default     = 443
 }
+
+variable "reverb_scheme" {
+  description = "Reverb scheme"
+  type        = string
+  default     = "https"
+}
+
+# Logging Configuration
+variable "log_retention_days" {
+  description = "Log retention days"
+  type        = number
+  default     = 7
+}
+
+variable "log_channel" {
+  description = "Log channel for Laravel"
+  type        = string
+  default     = "stderr"
+}
+
+variable "log_level" {
+  description = "Laravel application log level"
+  type        = string
+  default     = "error"
+}
+
+variable "log_stderr_formatter" {
+  description = "Laravel application log stderr formatter"
+  type        = string
+  default     = "json"
+}
+
 
 # Service Configuration
 variable "app_count" {

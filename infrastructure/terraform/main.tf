@@ -335,131 +335,6 @@ resource "aws_cloudwatch_log_group" "ecs_exec" {
   }
 }
 
-resource "aws_cloudwatch_log_group" "app" {
-  name              = "/aws/ecs/${var.project_name}/app"
-  retention_in_days = var.log_retention_days
-
-  tags = {
-    Name = "${var.project_name}-app-logs"
-  }
-}
-
-resource "aws_cloudwatch_log_group" "nginx" {
-  name              = "/aws/ecs/${var.project_name}/nginx"
-  retention_in_days = var.log_retention_days
-
-  tags = {
-    Name = "${var.project_name}-nginx-logs"
-  }
-}
-
-resource "aws_cloudwatch_log_group" "worker" {
-  name              = "/aws/ecs/${var.project_name}/worker"
-  retention_in_days = var.log_retention_days
-
-  tags = {
-    Name = "${var.project_name}-worker-logs"
-  }
-}
-
-resource "aws_cloudwatch_log_group" "scheduler" {
-  name              = "/aws/ecs/${var.project_name}/scheduler"
-  retention_in_days = var.log_retention_days
-
-  tags = {
-    Name = "${var.project_name}-scheduler-logs"
-  }
-}
-
-resource "aws_cloudwatch_log_group" "websockets" {
-  name              = "/aws/ecs/${var.project_name}/websockets"
-  retention_in_days = var.log_retention_days
-
-  tags = {
-    Name = "${var.project_name}-websockets-logs"
-  }
-}
-
-# Application Load Balancer
-resource "aws_alb" "main" {
-  name               = "${var.project_name}-alb"
-  internal           = false
-  load_balancer_type = "application"
-  security_groups    = [aws_security_group.alb.id]
-  subnets            = aws_subnet.public[*].id
-
-  enable_deletion_protection = var.enable_deletion_protection
-
-  tags = {
-    Name = "${var.project_name}-alb"
-  }
-}
-
-# ALB Target Groups
-resource "aws_alb_target_group" "app" {
-  name        = "${var.project_name}-app-tg"
-  port        = 80
-  protocol    = "HTTP"
-  vpc_id      = aws_vpc.main.id
-  target_type = "ip"
-
-  health_check {
-    enabled             = true
-    path                = "/"
-    healthy_threshold   = 2
-    interval            = 30
-    matcher             = "200"
-    port                = "traffic-port"
-    protocol            = "HTTP"
-    timeout             = 5
-    unhealthy_threshold = 2
-  }
-
-  tags = {
-    Name = "${var.project_name}-app-tg"
-  }
-}
-
-resource "aws_alb_target_group" "websockets" {
-  name        = "${var.project_name}-websockets-tg"
-  port        = 6001
-  protocol    = "HTTP"
-  vpc_id      = aws_vpc.main.id
-  target_type = "ip"
-
-  health_check {
-    enabled             = true
-    path                = "/up"
-    healthy_threshold   = 2
-    interval            = 30
-    matcher             = "200"
-    port                = "traffic-port"
-    protocol            = "HTTP"
-    timeout             = 5
-    unhealthy_threshold = 2
-  }
-
-  tags = {
-    Name = "${var.project_name}-websockets-tg"
-  }
-}
-
-# ALB Listeners
-resource "aws_alb_listener" "app" {
-  load_balancer_arn = aws_alb.main.id
-  port              = 80
-  protocol          = "HTTP"
-
-  default_action {
-    target_group_arn = aws_alb_target_group.app.arn
-    type             = "forward"
-  }
-
-  tags = {
-    Name = "${var.project_name}-app-alb-listener"
-  }
-}
-
 # IAM Roles and Policies
 data "aws_iam_policy_document" "ecs_task_execution_role" {
   statement {
@@ -688,7 +563,7 @@ resource "random_string" "bucket_suffix" {
 }
 
 
-module "ecs_app" {
+module "ecs_services" {
   source = "./modules/ecs-services"
 
   # Required Variables
@@ -700,36 +575,94 @@ module "ecs_app" {
   vpc_id             = aws_vpc.main.id
   subnet_ids         = aws_subnet.private[*].id
   security_group_ids = [aws_security_group.ecs_tasks.id]
-  target_group_arn   = aws_alb_target_group.app.arn
+
+  app_target_group_arn   = aws_alb_target_group.app.arn
+  reverb_target_group_arn = aws_alb_target_group.reverb.arn
+
   aws_region         = var.aws_region
 
   # Container Configuration
   nginx_image    = var.nginx_image
   app_image      = var.app_image
-  fargate_cpu    = var.fargate_cpu
-  fargate_memory = var.fargate_memory
 
   # Laravel Configuration
   app_env                      = var.app_env
   app_debug                    = var.app_debug
   app_key                      = var.app_key
   log_level                    = var.log_level
+
+  # Database Configuration
   db_host                      = aws_db_instance.main.address
   db_name                      = var.db_name
   db_username                  = var.db_username
   db_password_parameter_arn    = aws_ssm_parameter.db_credentials.arn
+
+  # Redis Configuration
   redis_host                   = aws_elasticache_replication_group.main.primary_endpoint_address
   redis_port                   = aws_elasticache_replication_group.main.port
   redis_password_parameter_arn = aws_ssm_parameter.redis_auth_token.arn
 
-  # Logging Configuration
-  app_log_group_name   = aws_cloudwatch_log_group.app.name
-  nginx_log_group_name = aws_cloudwatch_log_group.nginx.name
 
   # Service Configuration
-  app_count              = var.app_count
-  assign_pubic_ip        = false
-  enable_execute_command = var.environment != "production"
+  services = {
+    app = {
+      cpu    = var.fargate_cpu,
+      memory = var.fargate_memory
+      desired_count = var.app_count
+      health_check_grace_period = 300
+      autoscaling_enabled = var.enable_autoscaling
+      min_capacity = var.min_capacity
+      max_capacity = var.max_capacity
+      target_cpu_utilization = var.target_cpu_utilization
+      target_memory_utilization = var.target_memory_utilization
+    }
+
+    horizon = {
+      cpu           = var.horizon_cpu != null ? var.horizon_cpu : 512
+      memory        = var.horizon_memory != null ? var.horizon_memory : 1024
+      desired_count = var.horizon_count != null ? var.horizon_count : 1
+      autoscaling_enabled = false
+      additional_environment = [
+        {
+          name  = "HORIZON_MEMORY"
+          value = "256"
+        },
+        {
+          name  = "HORIZON_TIMEOUT"
+          value = "60"
+        }
+      ]
+    }
+
+    scheduler = {
+      cpu           = 256
+      memory        = 512
+      desired_count = 1
+      autoscaling_enabled = false
+    }
+
+    reverb = {
+      cpu           = var.reverb_cpu != null ? var.reverb_cpu : 512
+      memory        = var.reverb_memory != null ? var.reverb_memory : 1024
+      desired_count = var.reverb_count != null ? var.reverb_count : 1
+      autoscaling_enabled = false
+      additional_environment = [
+        {
+          name  = "REVERB_SERVER_HOST"
+          value = "0.0.0.0"
+        },
+        {
+          name  = "REVERB_SERVER_PORT"
+          value = "8080"
+        }
+      ]
+    }
+
+  }
+
+  # Reverb Configuration
+  reverb_host = "0.0.0.0"
+  reverb_port = 8080
 
   # Healthcheck Configuration
   health_check_grace_period = 300
