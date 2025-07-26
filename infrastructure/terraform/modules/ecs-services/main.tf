@@ -140,14 +140,14 @@ locals {
       name      = "APP_KEY"
       valueFrom = aws_ssm_parameter.app_key.arn
     },
-      var.db_password_parameter_arn != null && var.db_password_parameter_arn != "" ? {
+    {
       name      = "DB_PASSWORD"
       valueFrom = var.db_password_parameter_arn
-    } : null,
-      var.redis_password_parameter_arn != null && var.redis_password_parameter_arn != "" ? {
+    } ,
+    {
       name      = "REDIS_PASSWORD"
       valueFrom = var.redis_password_parameter_arn
-    } : null
+    }
   ])
 }
 
