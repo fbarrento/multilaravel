@@ -143,7 +143,7 @@ locals {
     {
       name      = "DB_PASSWORD"
       valueFrom = var.db_password_parameter_arn
-    } ,
+    },
     {
       name      = "REDIS_PASSWORD"
       valueFrom = var.redis_password_parameter_arn
@@ -229,7 +229,7 @@ resource "aws_ecs_task_definition" "services" {
           containerPort = 9000
           protocol      = "tcp"
         }
-      ] : each.key == "reverb" ? [
+        ] : each.key == "reverb" ? [
         {
           containerPort = var.reverb_port
           protocol      = "tcp"
@@ -243,19 +243,19 @@ resource "aws_ecs_task_definition" "services" {
         timeout     = var.health_check_timeout
         retries     = var.health_check_retries
         startPeriod = 30
-      } : each.key == "reverb" ? {
+        } : each.key == "reverb" ? {
         command     = ["CMD-SHELL", "curl -f http://localhost:${var.reverb_port}/health || exit 1"]
         interval    = var.health_check_interval
         timeout     = var.health_check_timeout
         retries     = var.health_check_retries
         startPeriod = 60
-      } : contains(["worker", "scheduler", "horizon"], each.key) ? {
+        } : contains(["worker", "scheduler", "horizon"], each.key) ? {
         command     = ["CMD-SHELL", "ps aux | grep -E '(queue:work|schedule:run|horizon)' | grep -v grep || exit 1"]
         interval    = var.health_check_interval
         timeout     = var.health_check_timeout
         retries     = var.health_check_retries
         startPeriod = 60
-      } : {
+        } : {
         command     = ["CMD-SHELL", "php -v || exit 1"]
         interval    = var.health_check_interval
         timeout     = var.health_check_timeout
@@ -263,10 +263,10 @@ resource "aws_ecs_task_definition" "services" {
         startPeriod = 60
       }
     }
-  ],
+    ],
 
     # Nginx container - only for app service
-      each.key == "app" ? [
+    each.key == "app" ? [
       {
         name      = "nginx"
         image     = var.nginx_image
