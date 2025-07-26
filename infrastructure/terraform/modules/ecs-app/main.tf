@@ -94,6 +94,26 @@ resource "aws_ecs_task_definition" "app" {
           value = var.redis_host
         },
         {
+          name  = "REDIS_PORT"
+          value = "6379"
+        },
+        {
+          name  = "REDIS_SCHEME"
+          value = "tls"
+        },
+        {
+          name  = "REDIS_CACHE_DB"
+          value = "1"
+        },
+        {
+          name  = "REDIS_DB"
+          value = "0"
+        },
+        {
+          name  = "REDIS_CLIENT"
+          value = "phpredis"
+        },
+        {
           name  = "REDIS_CLIENT"
           value = "phpredis"
         },

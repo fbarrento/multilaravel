@@ -285,6 +285,9 @@ variable "broadcast_connection" {
   default     = "redis"
 }
 
+# Cache Configuration
+
+
 # Feature Flags
 variable "enable_websockets" {
   description = "Enable websockets"

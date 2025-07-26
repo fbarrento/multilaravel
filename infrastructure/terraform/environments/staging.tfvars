@@ -68,6 +68,7 @@ cache_driver         = "redis"
 session_driver       = "redis"
 broadcast_connection = "reverb"
 
+
 # Domain Configuration (empty for development)
 domain_name     = ""
 certificate_arn = ""
