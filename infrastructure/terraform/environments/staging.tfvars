@@ -70,8 +70,8 @@ broadcast_connection = "reverb"
 
 
 # Domain Configuration (empty for development)
-domain_name     = "bdynamic.pt"
-app_subdomain = "multiapp-staging"
+domain_name      = "bdynamic.pt"
+app_subdomain    = "multiapp-staging"
 reverb_subdomain = "reverb-multiapp-staging"
 
 # Container Images (will be updated by CI/CD)
