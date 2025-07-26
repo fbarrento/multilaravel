@@ -34,7 +34,22 @@ class AppServiceProvider extends ServiceProvider
         });
 
         $this->configurePulse();
+        $this->configureHorizon();
 
+    }
+
+    private function configureHorizon(): void
+    {
+        Gate::define('viewHorizon', function ($user): bool {
+           if (app()->environment('local')) {
+               return true;
+           }
+
+           return in_array($user->email, [
+               'admin@example.com',
+              'test@example.com',
+           ]);
+        });
     }
 
     private function configurePulse(): void
