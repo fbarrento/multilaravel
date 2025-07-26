@@ -141,6 +141,10 @@ resource "aws_ecs_task_definition" "app" {
           name  = "SESSION_DOMAIN"
           value = ".bdynamic.pt"
         },
+        {
+          name  = "HORIZON_PATH"
+          value = "/admin/horizon"
+        }
       ], var.additional_environment_variables)
 
       secrets = [
