@@ -316,7 +316,7 @@ resource "aws_ecs_service" "reverb" {
   load_balancer {
     target_group_arn = var.reverb_target_group_arn
     container_name   = "app"
-    container_port   = 80
+    container_port   = 8080
   }
 
   health_check_grace_period_seconds = var.health_check_grace_period
