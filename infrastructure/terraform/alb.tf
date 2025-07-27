@@ -61,7 +61,7 @@ resource "aws_alb_target_group" "reverb" {
     path                = "/"
     healthy_threshold   = 2
     interval            = 30
-    matcher             = "200,101"
+    matcher             = "200"
     port                = "8080"
     protocol            = "HTTP"
     timeout             = 10
