@@ -309,15 +309,12 @@ resource "aws_service_discovery_service" "services" {
 }
 
 # Auto Scaling Target
-resource "aws_appautoscaling_target" "services" {
-  for_each = {
-    for k, v in local.services : k => v
-    if lookup(v, "autoscaling_enabled", false)
-  }
+resource "aws_appautoscaling_target" "app" {
+  count = contains(keys(local.services), "app") ? 1 : 0
 
-  max_capacity       = each.value.max_capacity
-  min_capacity       = each.value.min_capacity
-  resource_id        = "service/${var.cluster_name}/${aws_ecs_service.${each.key}.name}"
+  max_capacity       = local.services["app"].max_capacity
+  min_capacity       = local.services["app"].min_capacity
+  resource_id        = "service/${var.cluster_name}/${aws_ecs_service.app.name}"
   scalable_dimension = "ecs:service:DesiredCount"
   service_namespace  = "ecs"
 
@@ -325,46 +322,40 @@ resource "aws_appautoscaling_target" "services" {
 }
 
 # CPU-based Auto Scaling Policy
-resource "aws_appautoscaling_policy" "cpu" {
-  for_each = {
-    for k, v in local.services : k => v
-    if lookup(v, "autoscaling_enabled", false)
-  }
+resource "aws_appautoscaling_policy" "app_cpu" {
+  count = contains(keys(local.services), "app") ? 1 : 0
 
-  name               = "${var.project_name}-${each.key}-cpu-autoscaling"
+  name               = "${var.project_name}-app-cpu-autoscaling"
   policy_type        = "TargetTrackingScaling"
-  resource_id        = aws_appautoscaling_target.services[each.key].resource_id
-  scalable_dimension = aws_appautoscaling_target.services[each.key].scalable_dimension
-  service_namespace  = aws_appautoscaling_target.services[each.key].service_namespace
+  resource_id        = aws_appautoscaling_target.app.resource_id
+  scalable_dimension = aws_appautoscaling_target.app.scalable_dimension
+  service_namespace  = aws_appautoscaling_target.app.service_namespace
 
   target_tracking_scaling_policy_configuration {
     predefined_metric_specification {
       predefined_metric_type = "ECSServiceAverageCPUUtilization"
     }
-    target_value       = lookup(each.value, "target_cpu_utilization", var.target_cpu_utilization)
+    target_value       = local.services["app"].target_cpu_utilization
     scale_in_cooldown  = var.scale_in_cooldown
     scale_out_cooldown = var.scale_out_cooldown
   }
 }
 
 # Memory-based Auto Scaling Policy
-resource "aws_appautoscaling_policy" "memory" {
-  for_each = {
-    for k, v in local.services : k => v
-    if lookup(v, "autoscaling_enabled", false)
-  }
+resource "aws_appautoscaling_policy" "app_memory" {
+  count = contains(keys(local.services), "app") ? 1 : 0
 
-  name               = "${var.project_name}-${each.key}-memory-autoscaling"
+  name               = "${var.project_name}-app-memory-autoscaling"
   policy_type        = "TargetTrackingScaling"
-  resource_id        = aws_appautoscaling_target.services[each.key].resource_id
-  scalable_dimension = aws_appautoscaling_target.services[each.key].scalable_dimension
-  service_namespace  = aws_appautoscaling_target.services[each.key].service_namespace
+  resource_id        = aws_appautoscaling_target.app.resource_id
+  scalable_dimension = aws_appautoscaling_target.app.scalable_dimension
+  service_namespace  = aws_appautoscaling_target.app.service_namespace
 
   target_tracking_scaling_policy_configuration {
     predefined_metric_specification {
       predefined_metric_type = "ECSServiceAverageMemoryUtilization"
     }
-    target_value       = lookup(each.value, "target_memory_utilization", var.target_memory_utilization)
+    target_value       = local.services["app"].target_memory_utilization
     scale_in_cooldown  = var.scale_in_cooldown
     scale_out_cooldown = var.scale_out_cooldown
   }
