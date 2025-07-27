@@ -54,23 +54,23 @@ locals {
     },
     {
       name  = "REDIS_CLIENT"
-      value = tostring("phpredis")
+      value = tostring(var.redis_client)
     },
     {
       name  = "LOG_CHANNEL"
-      value = tostring("stderr")
+      value = tostring(var.log_channel)
     },
     {
       name  = "LOG_LEVEL"
-      value = tostring("info")
+      value = tostring(var.log_level)
     },
     {
       name  = "LOG_STDERR_FORMATTER"
-      value = tostring("json")
+      value = tostring(var.log_stderr_formatter)
     },
     {
       name  = "CACHE_STORE"
-      value = tostring(var.cache_driver)
+      value = tostring(var.cache_store)
     },
     {
       name  = "QUEUE_CONNECTION"
@@ -78,7 +78,11 @@ locals {
     },
     {
       name  = "SESSION_DOMAIN"
-      value = tostring(".bdynamic.pt")
+      value = ".bdynamic.pt"
+    },
+    {
+      name  = "SESSION_DRIVER"
+      value = tostring(var.session_driver)
     },
     {
       name  = "HORIZON_PATH"
@@ -125,7 +129,7 @@ resource "aws_ecs_task_definition" "app" {
       environment = concat([
         {
           name  = "CONTAINER_ROLE"
-          valeu = "app"
+          value = "app"
         }
       ], local.base_environment)
       secrets = local.base_secrets
@@ -158,7 +162,7 @@ resource "aws_ecs_task_definition" "app" {
       portMappings = [
         {
           containerPort = 80
-          hostPort      = "tcp"
+          protocol      = "tcp"
         }
       ]
 
