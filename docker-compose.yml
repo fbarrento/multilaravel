@@ -12,8 +12,10 @@ services:
       - CONTAINER_ROLE=app
     working_dir: /var/www/main
     depends_on:
-      - database
-      - redis
+      database:
+        condition: service_healthy
+      redis:
+        condition: service_started
     healthcheck:
       test: ["CMD", "sh", "-c", "test -f /var/www/main/vendor/autoload.php && test -f /var/www/admin/vendor/autoload.php"]
       interval: 15s
@@ -91,6 +93,7 @@ services:
     environment:
       - APP_ENV=${APP_ENV:-local}
       - CONTAINER_ROLE=worker
+      - REVERB_HOST=reverb
     working_dir: /var/www/admin
     depends_on:
       php:
@@ -111,7 +114,12 @@ services:
       MYSQL_USER: "laravel"
       MYSQL_PASSWORD: ""
       MYSQL_ALLOW_EMPTY_PASSWORD: yes
-
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
   # Redis Server
   redis:

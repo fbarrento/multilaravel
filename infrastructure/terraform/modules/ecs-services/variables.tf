@@ -258,6 +258,25 @@ variable "reverb_scheme" {
   default     = "https"
 }
 
+variable "reverb_key" {
+  description = "Reverb key"
+  type        = string
+}
+
+variable "reverb_secret" {
+  description = "Reverb secret"
+  type        = string
+  sensitive   = true
+}
+
+variable "reverb_app_id" {
+  description = "Reverb APP ID"
+  type        = string
+  sensitive   = true
+}
+
+
+
 # Logging Configuration
 variable "log_retention_days" {
   description = "Log retention days"

@@ -2,6 +2,9 @@
 
 namespace App\Providers;
 
+use Filament\Support\Facades\FilamentView;
+use Filament\View\PanelsRenderHook;
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Route;
@@ -34,6 +37,7 @@ class AppServiceProvider extends ServiceProvider
         });
 
         $this->configurePulse();
+
 
     }
 

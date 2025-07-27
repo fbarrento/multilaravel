@@ -83,6 +83,42 @@ locals {
     {
       name  = "HORIZON_PATH"
       value = tostring("admin/horizon")
+    },
+    {
+      name  = "BROADCAST_CONNECTION"
+      value = "reverb"
+    },
+    {
+      name  = "REVERB_APP_KEY"
+      value = tostring(var.reverb_key)
+    },
+    {
+      name  = "REVERB_HOST"
+      value = tostring(var.reverb_host)
+    },
+    {
+      name  = "REVERB_PORT"
+      value = tostring(var.reverb_port)
+    },
+    {
+      name  = "REVERB_SCHEME"
+      value = tostring(var.reverb_scheme)
+    },
+    {
+      name  = "VITE_REVERB_APP_KEY"
+      value = tostring(var.reverb_key)
+    },
+    {
+      name  = "VITE_REVERB_HOST"
+      value = tostring(var.reverb_host)
+    },
+    {
+      name  = "VITE_REVERB_PORT"
+      value = tostring(var.reverb_port)
+    },
+    {
+      name  = "VITE_REVERB_SCHEME"
+      value = tostring(var.reverb_scheme)
     }
   ], var.additional_environment_variables)
 
@@ -98,6 +134,14 @@ locals {
     {
       name      = "REDIS_PASSWORD"
       valueFrom = var.redis_password_parameter_arn
+    },
+    {
+      name      = "REVERB_APP_SECRET"
+      valueFrom = aws_ssm_parameter.reverb_secret.arn
+    },
+    {
+      name      = "REVERB_APP_ID"
+      valueFrom = aws_ssm_parameter.reverb_app_id.arn
     }
   ]
 
@@ -127,38 +171,6 @@ resource "aws_ecs_task_definition" "app" {
           name  = "CONTAINER_ROLE"
           value = "app"
         },
-        {
-          name  = "VITE_PUSHER_APP_KEY"
-          value = "multiapp"
-        },
-        {
-          name  = "VITE_PUSHER_APP_CLUSTER"
-          value = "multiapp"
-        },
-        {
-          name  = "VITE_PUSHER_HOST"
-          value = "reverb-multiapp-staging.bdynamic.pt"
-        },
-        {
-          name  = "VITE_PUSHER_PORT"
-          value = "443"
-        },
-        {
-          name  = "BROADCAST_CONNECTION"
-          value = "reverb"
-        },
-        {
-          name  = "REVERB_HOST"
-          value = "reverb-multiapp-staging.bdynamic.pt"
-        },
-        {
-          name  = "REVERB_PORT"
-          value = "443"
-        },
-        {
-          name  = "REVERB_SCHEME"
-          value = "https"
-        }
       ], local.base_environment)
       secrets = local.base_secrets
 
@@ -248,30 +260,6 @@ resource "aws_ecs_task_definition" "reverb" {
         {
           name  = "CONTAINER_ROLE"
           value = "reverb"
-        },
-        {
-          name  = "REVERB_APP_KEY"
-          value = "multiapp_key"
-        },
-        {
-          name  = "REVERB_APP_SECRET"
-          value = "fffdgrbhtnyiiykiukiuf"
-        },
-        {
-          name  = "REVERB_APP_ID"
-          value = "multiapp"
-        },
-        {
-          name  = "REVERB_HOST"
-          value = "reverb-multiapp-staging.bdynamic.pt"
-        },
-        {
-          name  = "REVERB_PORT"
-          value = "443"
-        },
-        {
-          name  = "REVERB_SCHEME"
-          value = "https"
         }
       ], local.base_environment)
       secrets = local.base_secrets
@@ -407,6 +395,28 @@ resource "aws_ssm_parameter" "app_key" {
 
   tags = {
     Name = "${var.project_name}-app-key"
+  }
+
+}
+
+resource "aws_ssm_parameter" "reverb_secret" {
+  name  = "/${var.project_name}/${var.app_env}/reverb/secret"
+  type  = "SecureString"
+  value = var.reverb_secret
+
+  tags = {
+    Name = "${var.project_name}-reverb-secret"
+  }
+
+}
+
+resource "aws_ssm_parameter" "reverb_app_id" {
+  name  = "/${var.project_name}/${var.app_env}/reverb/app-id"
+  type  = "SecureString"
+  value = var.reverb_app_id
+
+  tags = {
+    Name = "${var.project_name}-reverb-app-id"
   }
 
 }

@@ -395,8 +395,44 @@ variable "app_subdomain" {
 variable "reverb_subdomain" {
   description = "Subdomain for the reverb (empty for root domain)"
   type        = string
-  default     = "multiappreverb"
+  default     = "reverb-multiapp-staging"
 }
+
+variable "reverb_host" {
+  description = "Reverb host"
+  type        = string
+}
+
+variable "reverb_port" {
+  description = "Reverb port"
+  type        = number
+  default     = 443
+}
+
+variable "reverb_scheme" {
+  description = "Reverb scheme"
+  type        = string
+  default     = "https"
+}
+
+variable "reverb_key" {
+  description = "Reverb key"
+  type        = string
+}
+
+variable "reverb_secret" {
+  description = "Reverb secret"
+  type        = string
+  sensitive   = true
+}
+
+variable "reverb_app_id" {
+  description = "Reverb APP ID"
+  type        = string
+  sensitive   = true
+}
+
+
 
 variable "create_www_record" {
   description = "Create www record"
