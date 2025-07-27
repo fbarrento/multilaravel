@@ -264,7 +264,7 @@ resource "aws_ecs_task_definition" "reverb" {
       ], local.base_environment)
       secrets = local.base_secrets
 
-      helthcheck = length(var.php_health_check_command) > 0 ? {
+      healthCheck = length(var.php_health_check_command) > 0 ? {
         command     = var.php_health_check_command
         interval    = var.health_check_interval
         timeout     = var.health_check_timeout

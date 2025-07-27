@@ -58,14 +58,14 @@ resource "aws_alb_target_group" "reverb" {
 
   health_check {
     enabled             = true
-    path                = "/up"
+    path                = "/"
     healthy_threshold   = 2
     interval            = 30
-    matcher             = "200"
+    matcher             = "200.101"
     port                = "traffic-port"
     protocol            = "HTTP"
-    timeout             = 5
-    unhealthy_threshold = 2
+    timeout             = 10
+    unhealthy_threshold = 3
   }
 
   tags = {
