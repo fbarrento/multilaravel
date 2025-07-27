@@ -142,6 +142,22 @@ resource "aws_ecs_task_definition" "app" {
         {
           name  = "VITE_PUSHER_PORT"
           value = "443"
+        },
+        {
+          name  = "BROADCAST_CONNECTION"
+          value = "reverb"
+        },
+        {
+          name  = "REVERB_HOST"
+          value = "reverb-multiapp-staging.bdynamic.pt"
+        },
+        {
+          name  = "REVERB_PORT"
+          value = "443"
+        },
+        {
+          name  = "REVERB_SCHEME"
+          value = "https"
         }
       ], local.base_environment)
       secrets = local.base_secrets
