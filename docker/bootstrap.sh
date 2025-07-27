@@ -32,6 +32,9 @@ fi
 
 if [ "$role" = "app" ]; then
 
+  npm ci
+  npm run build
+
   php artisan cache:clear
   php artisan config:clear
   php artisan route:clear
