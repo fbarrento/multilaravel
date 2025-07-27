@@ -260,6 +260,18 @@ resource "aws_ecs_task_definition" "reverb" {
         {
           name  = "REVERB_APP_ID"
           value = "multiapp"
+        },
+        {
+          name  = "REVERB_HOST"
+          value = "reverb-multiapp-staging.bdynamic.pt"
+        },
+        {
+          name  = "REVERB_PORT"
+          value = "443"
+        },
+        {
+          name  = "REVERB_SCHEME"
+          value = "https"
         }
       ], local.base_environment)
       secrets = local.base_secrets
