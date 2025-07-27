@@ -16,7 +16,7 @@ if [ "$role" = "worker" ]; then
 elif [ "$role" = "reverb" ]; then
     echo "Starting reverb server"
     cd /var/www/main
-    php artisan reverb:start --host=0.0.0.0 --port=6001
+    php artisan reverb:start --host=0.0.0.0 --port=8080
 
 elif [ "$role" = "scheduler" ]; then
   crond &
