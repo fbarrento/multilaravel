@@ -85,8 +85,8 @@ jobs:
       TF_VAR_certificate_arn: ${{ secrets.CERTIFICATE_ARN }}
       TF_VAR_cloudflare_api_token: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       TF_VAR_reverb_key: ${{ vars.REVERB_APP_KEY }}
-      TF_VAR_reverb_secret: ${{ vars.REVERB_APP_SECRET }}
-      TF_VAR_reverb_app_id: ${{ vars.REVERB_APP_ID }}
+      TF_VAR_reverb_secret: ${{ secrets.REVERB_APP_SECRET }}
+      TF_VAR_reverb_app_id: ${{ secrets.REVERB_APP_ID }}
     outputs:
       has-changes: ${{ steps.plan.outputs.has-changes }}
       exitcode: ${{ steps.plan.outputs.exitcode }}
