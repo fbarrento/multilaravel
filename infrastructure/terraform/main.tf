@@ -661,7 +661,7 @@ module "ecs_services" {
   }
 
   # Reverb Configuration
-  reverb_host   = "reverb-multiapp-staging.bdynamic.pt"
+  reverb_host   = var.reverb_host
   reverb_port   = 443
   reverb_scheme = "https"
   reverb_key    = var.reverb_key
