@@ -2,91 +2,87 @@ locals {
   base_environment = concat([
     {
       name  = "APP_ENV"
-      value = var.app_env
+      value = tostring(var.app_env)
     },
     {
       name  = "APP_DEBUG"
-      value = var.app_debug
+      value = tostring(var.app_debug)
     },
     {
       name  = "DB_HOST"
-      value = var.db_host
+      value = tostring(var.db_host)
     },
     {
       name  = "DB_DATABASE"
-      value = var.db_name
+      value = tostring(var.db_name)
     },
     {
       name  = "DB_USERNAME"
-      value = var.db_username
+      value = tostring(var.db_username)
     },
     {
       name  = "DB_PASSWORD"
-      value = var.db_password
+      value = tostring(var.db_password)
     },
     {
       name  = "DB_PORT"
-      value = var.db_port
+      value = tostring(var.db_port)
     },
     {
       name  = "DB_CONNECTION"
-      value = var.db_connection
+      value = tostring(var.db_connection)
     },
     {
       name  = "REDIS_HOST"
-      value = var.redis_host
+      value = tostring(var.redis_host)
     },
     {
       name  = "REDIS_PORT"
-      value = "6379"
+      value = tostring("6379")
     },
     {
       name  = "REDIS_SCHEME"
-      value = "tls"
+      value = tostring("tls")
     },
     {
       name  = "REDIS_CACHE_DB"
-      value = "1"
+      value = tostring("1")
     },
     {
       name  = "REDIS_DB"
-      value = "0"
+      value = tostring("0")
     },
     {
       name  = "REDIS_CLIENT"
-      value = "phpredis"
-    },
-    {
-      name  = "REDIS_CLIENT"
-      value = "phpredis"
+      value = tostring("phpredis")
     },
     {
       name  = "LOG_CHANNEL"
-      value = "stderr"
+      value = tostring("stderr")
     },
     {
       name  = "LOG_LEVEL"
-      value = "info"
+      value = tostring("info")
     },
     {
       name  = "LOG_STDERR_FORMATTER"
-      value = "json"
+      value = tostring("json")
     },
     {
       name  = "CACHE_STORE"
-      value = var.cache_driver
+      value = tostring(var.cache_driver)
     },
     {
       name  = "QUEUE_CONNECTION"
-      value = var.queue_connection
+      value = tostring(var.queue_connection)
     },
     {
       name  = "SESSION_DOMAIN"
-      value = ".bdynamic.pt"
+      value = tostring(".bdynamic.pt")
     },
     {
       name  = "HORIZON_PATH"
-      value = "admin/horizon"
+      value = tostring("admin/horizon")
     }
   ], var.additional_environment_variables)
 
