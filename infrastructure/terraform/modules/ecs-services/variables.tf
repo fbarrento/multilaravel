@@ -424,7 +424,7 @@ variable "create_service_discovery" {
 
 # Additional Environment Variables
 variable "additional_environment_variables" {
-  description = "Additional environment variables for the app container"
+  description = "Additional environment variables for the all the containers"
   type = list(object({
     name  = string
     value = string
