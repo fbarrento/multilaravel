@@ -73,8 +73,7 @@ services:
       - CONTAINER_ROLE=reverb
     working_dir: /var/www/main
     ports:
-      - "6001:6001"
-      - "6002:6002"
+      - "8080:8080"
     depends_on:
       php:
         condition: service_healthy

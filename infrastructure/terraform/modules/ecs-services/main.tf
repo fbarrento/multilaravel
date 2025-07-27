@@ -126,6 +126,22 @@ resource "aws_ecs_task_definition" "app" {
         {
           name  = "CONTAINER_ROLE"
           value = "app"
+        },
+        {
+          name  = "VITE_PUSHER_APP_KEY"
+          value = "multiapp"
+        },
+        {
+          name  = "VITE_PUSHER_APP_CLUSTER"
+          value = "multiapp"
+        },
+        {
+          name  = "VITE_PUSHER_HOST"
+          value = "reverb-multiapp-staging.bdynamic.pt"
+        },
+        {
+          name  = "VITE_PUSHER_PORT"
+          value = "443"
         }
       ], local.base_environment)
       secrets = local.base_secrets
@@ -216,6 +232,18 @@ resource "aws_ecs_task_definition" "reverb" {
         {
           name  = "CONTAINER_ROLE"
           value = "reverb"
+        },
+        {
+          name  = "REVERB_APP_KEY"
+          value = "multiapp_key"
+        },
+        {
+          name  = "REVERB_APP_SECRET"
+          value = "fffdgrbhtnyiiykiukiuf"
+        },
+        {
+          name  = "REVERB_APP_ID"
+          value = "multiapp"
         }
       ], local.base_environment)
       secrets = local.base_secrets
