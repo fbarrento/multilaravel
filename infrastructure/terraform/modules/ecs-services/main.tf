@@ -21,10 +21,6 @@ locals {
       value = tostring(var.db_username)
     },
     {
-      name  = "DB_PASSWORD"
-      value = tostring(var.db_password)
-    },
-    {
       name  = "DB_PORT"
       value = tostring(var.db_port)
     },
