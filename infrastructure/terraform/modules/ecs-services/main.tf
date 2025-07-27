@@ -197,6 +197,61 @@ resource "aws_ecs_task_definition" "app" {
 
 }
 
+resource "aws_ecs_task_definition" "reverb" {
+
+  family                   = "${var.project_name}-reverb"
+  network_mode             = "awsvpc"
+  requires_compatibilities = ["FARGATE"]
+  cpu                      = local.services["reverb"].cpu
+  memory                   = local.services["reverb"].memory
+  execution_role_arn       = var.execution_role_arn
+  task_role_arn            = var.task_role_arn
+
+  container_definitions = jsonencode([
+    {
+      name      = "app"
+      image     = var.app_image
+      essential = true
+      environment = concat([
+        {
+          name  = "CONTAINER_ROLE"
+          value = "reverb"
+        }
+      ], local.base_environment)
+      secrets = local.base_secrets
+
+      helthcheck = length(var.php_health_check_command) > 0 ? {
+        command     = var.php_health_check_command
+        interval    = var.health_check_interval
+        timeout     = var.health_check_timeout
+        retries     = var.health_check_retries
+        startPeriod = 30
+      } : null
+
+      logConfiguration = {
+        logDriver = "awslogs"
+        options = {
+          "awslogs-region"        = var.aws_region
+          "awslogs-group"         = aws_cloudwatch_log_group.services["reverb"].name
+          "awslogs-stream-prefix" = "ecs"
+        }
+      }
+
+      portMappings = [
+        {
+          containerPort = 8080
+          protocol      = "tcp"
+        }
+      ]
+
+      workingDirectory = var.php_working_directory
+
+    }
+
+  ])
+
+}
+
 # ECS Service for app
 resource "aws_ecs_service" "app" {
   name            = "${var.project_name}-app"
@@ -226,6 +281,51 @@ resource "aws_ecs_service" "app" {
     for_each = var.create_service_discovery ? [1] : []
     content {
       registry_arn = aws_service_discovery_service.services["app"].arn
+    }
+  }
+
+  # Auto Scaling
+  lifecycle {
+    ignore_changes = [
+      desired_count
+    ]
+  }
+
+  # Platform Version
+  platform_version = var.platform_version
+
+  tags = var.tags
+
+}
+
+resource "aws_ecs_service" "reverb" {
+  name            = "${var.project_name}-reverb"
+  cluster         = var.cluster_id
+  task_definition = aws_ecs_task_definition.reverb.arn
+  desired_count   = local.services["reverb"].desired_count
+  launch_type     = "FARGATE"
+
+  force_new_deployment = true
+
+  network_configuration {
+    security_groups  = var.security_group_ids
+    subnets          = var.subnet_ids
+    assign_public_ip = var.assign_public_ip
+  }
+
+  load_balancer {
+    target_group_arn = var.reverb_target_group_arn
+    container_name   = "app"
+    container_port   = 80
+  }
+
+  health_check_grace_period_seconds = var.health_check_grace_period
+
+  # Service Discovery
+  dynamic "service_registries" {
+    for_each = var.create_service_discovery ? [1] : []
+    content {
+      registry_arn = aws_service_discovery_service.services["reverb"].arn
     }
   }
 
@@ -357,6 +457,58 @@ resource "aws_appautoscaling_policy" "app_memory" {
       predefined_metric_type = "ECSServiceAverageMemoryUtilization"
     }
     target_value       = local.services["app"].target_memory_utilization
+    scale_in_cooldown  = var.scale_in_cooldown
+    scale_out_cooldown = var.scale_out_cooldown
+  }
+}
+
+resource "aws_appautoscaling_target" "reverb" {
+  count = contains(keys(local.services), "reverb") ? 1 : 0
+
+  max_capacity       = local.services["reverb"].max_capacity
+  min_capacity       = local.services["reverb"].min_capacity
+  resource_id        = "service/${var.cluster_name}/${aws_ecs_service.reverb.name}"
+  scalable_dimension = "ecs:service:DesiredCount"
+  service_namespace  = "ecs"
+
+  tags = var.tags
+}
+
+# CPU-based Auto Scaling Policy
+resource "aws_appautoscaling_policy" "reverb_cpu" {
+  count = contains(keys(local.services), "reverb") ? 1 : 0
+
+  name               = "${var.project_name}-reverb-cpu-autoscaling"
+  policy_type        = "TargetTrackingScaling"
+  resource_id        = aws_appautoscaling_target.reverb[0].resource_id
+  scalable_dimension = aws_appautoscaling_target.reverb[0].scalable_dimension
+  service_namespace  = aws_appautoscaling_target.reverb[0].service_namespace
+
+  target_tracking_scaling_policy_configuration {
+    predefined_metric_specification {
+      predefined_metric_type = "ECSServiceAverageCPUUtilization"
+    }
+    target_value       = local.services["reverb"].target_cpu_utilization
+    scale_in_cooldown  = var.scale_in_cooldown
+    scale_out_cooldown = var.scale_out_cooldown
+  }
+}
+
+# Memory-based Auto Scaling Policy
+resource "aws_appautoscaling_policy" "reverb_memory" {
+  count = contains(keys(local.services), "reverb") ? 1 : 0
+
+  name               = "${var.project_name}-reverb-memory-autoscaling"
+  policy_type        = "TargetTrackingScaling"
+  resource_id        = aws_appautoscaling_target.reverb[0].resource_id
+  scalable_dimension = aws_appautoscaling_target.reverb[0].scalable_dimension
+  service_namespace  = aws_appautoscaling_target.reverb[0].service_namespace
+
+  target_tracking_scaling_policy_configuration {
+    predefined_metric_specification {
+      predefined_metric_type = "ECSServiceAverageMemoryUtilization"
+    }
+    target_value       = local.services["reverb"].target_memory_utilization
     scale_in_cooldown  = var.scale_in_cooldown
     scale_out_cooldown = var.scale_out_cooldown
   }
