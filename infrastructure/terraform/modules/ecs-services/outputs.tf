@@ -1,6 +1,8 @@
 output "service_names" {
   description = "Names of the created ECS services"
-  value       = [for k, v in aws_ecs_service.services : v.name]
+  value       = [
+    aws_ecs_service.app.name
+  ]
 }
 
 output "service_discovery_namespace" {
@@ -17,9 +19,9 @@ output "service_discovery_services" {
 
 output "task_definition_arns" {
   description = "ARNs of the ECS task definitions"
-  value = {
-    for k, v in aws_ecs_task_definition.services : k => v.arn
-  }
+  value = [
+    { aws_ecs_task_definition.app.name : aws_ecs_task_definition.app.arn }
+  ]
 }
 
 output "log_group_names" {
@@ -29,9 +31,3 @@ output "log_group_names" {
   }
 }
 
-output "autoscaling_targets" {
-  description = "Auto scaling targets for services"
-  value = {
-    for k, v in aws_appautoscaling_target.services : k => v.resource_id
-  }
-}
