@@ -1,6 +1,6 @@
 output "service_names" {
   description = "Names of the created ECS services"
-  value       = [
+  value = [
     aws_ecs_service.app.name
   ]
 }
@@ -17,12 +17,6 @@ output "service_discovery_services" {
   } : {}
 }
 
-output "task_definition_arns" {
-  description = "ARNs of the ECS task definitions"
-  value = [
-    { aws_ecs_task_definition.app.name : aws_ecs_task_definition.app.arn }
-  ]
-}
 
 output "log_group_names" {
   description = "Names of the CloudWatch log groups"

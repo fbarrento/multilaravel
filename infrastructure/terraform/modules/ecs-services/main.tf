@@ -123,11 +123,16 @@ resource "aws_ecs_task_definition" "app" {
 
   container_definitions = jsonencode([
     {
-      name        = "app"
-      image       = var.app_image
-      essential   = true
-      environment = local.base_environment
-      secrets     = local.base_secrets
+      name      = "app"
+      image     = var.app_image
+      essential = true
+      environment = concat([
+        {
+          name  = "CONTAINER_ROLE"
+          valeu = "app"
+        }
+      ], local.base_environment)
+      secrets = local.base_secrets
 
       helthcheck = length(var.php_health_check_command) > 0 ? {
         command     = var.php_health_check_command
